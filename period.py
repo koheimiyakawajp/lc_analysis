@@ -2,6 +2,8 @@ import numpy as np
 from scipy import signal as sg
 from matplotlib import pyplot as plt
 from transitleastsquares import transitleastsquares as tls
+from transitleastsquares import transit_mask
+import copy
 
 def fap(pgram, prob):
     n   = len(pgram)
@@ -41,3 +43,13 @@ def tls_periodogram(data, rad_star=1., mas_star=1.):
                               duration_grid_step=2., oversampling_factor=1)
 
     return np.array((pgram.periods, pgram.power)), pgram.SDE
+
+def mask_transit(data, period, duration, T0):
+    med         = np.median(data[1])
+    intransit   = transit_mask(data[0], period, duration, T0)
+    data_ot     = copy.copy(data)
+    data_ot[1:,intransit]    = med
+
+    return data_ot
+
+
