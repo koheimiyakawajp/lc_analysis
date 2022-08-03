@@ -50,8 +50,8 @@ def peak_filter(data, freq_array):
     fft_time    = fft_data[0]
     fft_flux    = fft_data[1]
     for fp in freq_array:
-        fu  = fp*1.5
-        fl  = fp*0.5
+        fu  = fp*1.1
+        fl  = fp*0.9
         fft_flux[((fl < fft_time)&\
                   (fft_time < fu))] = 0
         fft_flux[((fft_time[-1] - fu < fft_time)&\
