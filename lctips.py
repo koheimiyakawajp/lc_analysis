@@ -15,10 +15,8 @@ def split_discon(data):
     i0      = 0
     split_array     = []
     for i in ids:
-        #plt.plot(data[0,i0:i], data[1,i0:i])
         split_array.append(data[:,i0:i])
         i0  = i
-    #plt.show()
     split_array.append(data[:,i0:])
     return split_array
 
@@ -41,7 +39,6 @@ def med_bin(array, k):
     k       = int(k)
     N_k     = dlen//k
 
-    #res_array   = np.array(((1.,1.)), dtype='f8')
     res_array   = []
     for i in range(k):
         tmp_ar  = array[:,i*N_k:(i+1)*N_k]
@@ -73,7 +70,6 @@ def remove_flare(data, nsigma=4):
 
     return data_r
 
-
 def detrend_lc(data, npoint=10):
     data[1] = data[1] - np.median(data[1])
     d_tr    = exten3_lc(data)
@@ -87,7 +83,6 @@ def detrend_lc(data, npoint=10):
     datad[1]= data[1] - trend
 
     return datad
-
 
 def median1d(arr, k):
     w = len(arr)
@@ -108,11 +103,8 @@ def remove_lowest(data, num_of_d=2):
 
 def bin_lc(data, num_of_d=100):
 
-    #plt.scatter(data[0], data[1], s=3)
-
     i_sort  = np.argsort(data[0])
     data    = data[:,i_sort]
-    #plt.scatter(data[0], data[1], s=0.5)
 
     num_of_bin = len(data[1])//num_of_d
     means   = []
@@ -122,13 +114,4 @@ def bin_lc(data, num_of_d=100):
     means   = np.vstack(means)
     means   = means.T
 
-    #plt.scatter(means[0], means[1])
-
-
-    #plt.show()
-    #exit()
     return means
-
-
-
-

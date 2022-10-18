@@ -42,14 +42,11 @@ def tls_periodogram(data, rad_star=1., mas_star=1.):
     pgram       = model.power(R_star=rad_star, M_star=mas_star,\
                               duration_grid_step=2., oversampling_factor=1)
 
-    return np.array((pgram.periods, pgram.power)), pgram.SDE
+    return pgram
 
 def mask_transit(data, period, duration, T0):
-    med         = np.median(data[1])
+    med     = np.median(data[1])
     intransit   = transit_mask(data[0], period, duration, T0)
     data_ot     = copy.copy(data)
-    data_ot[1:,intransit]    = med
-
+    data_ot[1,intransit]    = med
     return data_ot
-
-

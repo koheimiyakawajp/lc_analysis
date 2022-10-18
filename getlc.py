@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from matplotlib import pyplot as plt
 import numpy as np
@@ -25,7 +25,6 @@ def flux_relative(flux, flux_er):
 def remove_nan(data):
     data    = data[:,(data[1]>0)]
     return data
-
 
 def dl_lightcurve(sr_object):
     lcf     = sr_object.download()
@@ -54,8 +53,11 @@ def merge_lightcurves(search_result, author):
 def EPIC_to_TIC(EPICid):
     df      = pd.read_csv("./k2ticxmatch_20210831.csv",dtype='unicode')
     target  = df[df['epic']==EPICid]
-    tid     = target.iat[0,0]
-    return "TIC "+tid
+    if target=='':
+        return -1
+    else:
+        tid     = target.iat[0,0]
+        return "TIC "+tid
 
 def tesslc_byepic(epicid):
     TIC     = EPIC_to_TIC(epicid)
