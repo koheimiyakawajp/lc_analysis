@@ -61,6 +61,27 @@ def peak_filter(data, freq_array):
 
     return new_data
 
+def rm_whitenoise(data, nsigma):
+    fft_data    = fft(data)
+    fft_time    = fft_data[0]
+    fft_flux    = fft_data[1]
+
+    N           = len(fft_flux)
+
+    abs_fft_flux    = np.abs(fft_flux)
+    abs_fft_flux    = abs_fft_flux / N * 2 # 交流成分
+    abs_fft_flux[0] = abs_fft_flux[0] / 2     # 直流成分
+
+    median      = np.median(abs_fft_flux)
+    wh_level    = np.median(np.abs(abs_fft_flux - median))*1.48*nsigma
+
+    fft_flux[(abs_fft_flux < median+wh_level)]  = 0
+    new_data    = ifft(fft_time, fft_flux)
+    new_data[0] = new_data[0] + data[0,0]
+
+    return new_data
+
+
 def whitenoise_sigma(data, nsigma):
     fft_data    = fft(data)
     fft_time    = fft_data[0]

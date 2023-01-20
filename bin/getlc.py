@@ -5,6 +5,7 @@ import numpy as np
 import lightkurve as lk
 import pandas as pd
 import sys
+import math
 
 def obj_to_f(obj):
     time_f  = []
@@ -28,15 +29,17 @@ def remove_nan(data):
 
 def dl_lightcurve(sr_object):
     lcf     = sr_object.download()
+    t_ofs   = lcf.meta['BJDREFI']
     time    = lcf.time
     time    = obj_to_f(time)
     flux,er     = flux_relative(lcf.flux, lcf.flux_err)
 
-    data    = np.array((time,flux,er), dtype='f8')
+    data    = np.array((time+t_ofs,flux,er), dtype='f8')
     return data
 
-def merge_lightcurves(search_result, author):
-    TESS_search_result  = search_result[(search_result.author==author)]
+def merge_lightcurves(search_result, author, texp):
+    TESS_sr1  = search_result[(search_result.author==author)]
+    TESS_search_result  = TESS_sr1[(TESS_sr1.exptime==texp)]
 
     time_tot  = []
     flux_tot  = []
@@ -53,21 +56,21 @@ def merge_lightcurves(search_result, author):
 def EPIC_to_TIC(EPICid):
     df      = pd.read_csv("./k2ticxmatch_20210831.csv",dtype='unicode')
     target  = df[df['epic']==EPICid]
-    #if target=='':
-        #return -1
-    #else:
-    tid     = target.iat[0,0]
-    return "TIC "+tid
+    if math.isnan(float(target.iat[0,0])):
+        return -1
+    else:
+        tid     = target.iat[0,0]
+        return "TIC "+tid
 
 def tesslc_byepic(epicid):
     TIC     = EPIC_to_TIC(epicid)
     search_result = lk.search_lightcurve(TIC)
-    data    = merge_lightcurves(search_result, 'SPOC')
+    data    = merge_lightcurves(search_result, 'SPOC', '120')
     return data
 
 def k2lc_byepic(epicid):
     search_result = lk.search_lightcurve("EPIC "+epicid)
-    data    = merge_lightcurves(search_result, 'K2SFF')
+    data    = merge_lightcurves(search_result, 'K2SFF','1800')
     return data
 
 if __name__=='__main__':

@@ -3,13 +3,15 @@ from matplotlib import pyplot as plt
 from scipy import interpolate
 import copy
 
-def split_discon(data):
+
+def split_discon(data, scale=10):
+    data    = data[:,np.argsort(data[0])]
     time    = data[0]
 
     dif_t   = time[1:] - time[:-1]
     sep     = np.median(dif_t)
 
-    ids     = np.where(dif_t > sep*10)[0]
+    ids     = np.where(dif_t > sep*scale)[0]
     ids     += 1
 
     i0      = 0
@@ -57,7 +59,7 @@ def remove_outlier(data, nsigma=4):
 
     data_r  = copy.copy(data)
     data_r[1,((data[1]<thres_n)|(thres_p<data[1]))] = med
-    return data
+    return data_r
 
 def remove_flare(data, nsigma=4):
     med     = np.median(data[1])
@@ -74,6 +76,8 @@ def detrend_lc(data, npoint=10):
     data[1] = data[1] - np.median(data[1])
     d_tr    = exten3_lc(data)
     medd    = med_bin(d_tr, npoint)
+    #plt.scatter(data[0], data[1], s=1)
+    #plt.show()
 
     fn      = interpolate.interp1d(medd[0], medd[1], kind='cubic')
     trend   = fn(data[0])
@@ -81,7 +85,7 @@ def detrend_lc(data, npoint=10):
 
     datad   = np.copy(data)
     datad[1]= data[1] - trend
-
+    
     return datad
 
 def median1d(arr, k):
