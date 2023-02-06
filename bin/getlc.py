@@ -39,7 +39,12 @@ def dl_lightcurve(sr_object):
 
 def merge_lightcurves(search_result, author, texp):
     TESS_sr1  = search_result[(search_result.author==author)]
-    TESS_search_result  = TESS_sr1[(TESS_sr1.exptime==texp)]
+    if len(TESS_sr1) != 0:
+        TESS_search_result  = TESS_sr1[(TESS_sr1.exptime==texp)]
+        if len(TESS_search_result) == 0:
+            return [0]
+    else:
+        return [0]
 
     time_tot  = []
     flux_tot  = []
@@ -66,6 +71,7 @@ def tesslc_byepic(epicid):
     TIC     = EPIC_to_TIC(epicid)
     search_result = lk.search_lightcurve(TIC)
     data    = merge_lightcurves(search_result, 'SPOC', '120')
+
     return data
 
 def k2lc_byepic(epicid):
@@ -75,9 +81,12 @@ def k2lc_byepic(epicid):
 
 if __name__=='__main__':
     epicid  = sys.argv[1]
-    data    = k2lc_byepic(epicid)
+    #data    = k2lc_byepic(epicid)
+    data    = tesslc_byepic(epicid)
 
     #data    = tesslc_byepic(epicid)
     plt.errorbar(data[0], data[1], yerr=data[2], fmt='.', ms=1, color='gray')
     plt.show()
+
+
 
