@@ -38,9 +38,13 @@ def dl_lightcurve(sr_object):
     return data
 
 def merge_lightcurves(search_result, author, texp):
+    #print(search_result)
     TESS_sr1  = search_result[(search_result.author==author)]
+    #print(TESS_sr1)
     if len(TESS_sr1) != 0:
-        TESS_search_result  = TESS_sr1[(TESS_sr1.exptime==texp)]
+        exp_ar  = np.array(TESS_sr1.exptime,dtype='f8')
+        TESS_search_result  = TESS_sr1[(exp_ar==float(texp))]
+        #print(TESS_search_result)
         if len(TESS_search_result) == 0:
             return [0]
     else:
@@ -67,9 +71,43 @@ def EPIC_to_TIC(EPICid):
         tid     = target.iat[0,0]
         return "TIC "+tid
 
+def tesslcTESSSPOC_byepic(epicid):
+    TIC     = EPIC_to_TIC(epicid)
+    search_result = lk.search_lightcurve(TIC)
+    if np.any(search_result.author=='SPOC'):
+        tarname = np.unique(search_result.target_name[(search_result.author=='SPOC')])[0]
+    else:
+        tarname = np.unique(search_result.target_name[(search_result.author=='TESS-SPOC')])[0]
+        
+    search_result = search_result[(search_result.target_name==tarname)]
+    data    = merge_lightcurves(search_result, 'TESS-SPOC', '600.')
+
+    return data
+
+def tesslcQLP_byepic(epicid):
+    TIC     = EPIC_to_TIC(epicid)
+    #print(TIC)
+    search_result = lk.search_lightcurve(TIC)
+    #print(search_result)
+    if np.any(search_result.author=='SPOC'):
+        tarname = np.unique(search_result.target_name[(search_result.author=='SPOC')])[0]
+    elif np.any(search_result.author=='QLP'):
+        tarname = np.unique(search_result.target_name[(search_result.author=='QLP')])[0]
+    else:
+        return [0]
+        
+    #print(tarname)
+    search_result = search_result[(search_result.target_name==tarname)]
+    data    = merge_lightcurves(search_result, 'QLP', '600.')
+
+    return data
+
 def tesslc_byepic(epicid):
     TIC     = EPIC_to_TIC(epicid)
     search_result = lk.search_lightcurve(TIC)
+    if np.all(search_result.author!='SPOC'):
+        return [0]
+    
     data    = merge_lightcurves(search_result, 'SPOC', '120')
 
     return data

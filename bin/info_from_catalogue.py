@@ -21,12 +21,11 @@ def k2id_to_cood(k2id):
 
     return ra,dec
 
-
-def get_gaia(k2id, rad=0.1):
+def get_gaiadr2(k2id, rad=0.1):
     
     ra,dec  = k2id_to_cood(k2id)
 
-    Gaia.MAIN_GAIA_TABLE="gaiadr3.gaia_source"
+    Gaia.MAIN_GAIA_TABLE="gaiadr2.gaia_source"
     Gaia.ROW_LIMIT  = 1
     coord   = SkyCoord(ra=ra,dec=dec,unit=(u.degree,u.degree),\
         frame='icrs')
@@ -34,13 +33,50 @@ def get_gaia(k2id, rad=0.1):
 
     j   = Gaia.cone_search_async(coord, radius)
     r   = j.get_results()
+    #print(r)
+    #for i in r.columns:
+    #    print(i)
+    #exit()
     
     plx     = r['parallax'][0]
     plx_er  = r['parallax_error'][0]
     bprp    = r['bp_rp'][0]
-    ruwe    = r['ruwe'][0]
+    gof_al  = r['astrometric_gof_al'][0]
+    d       = r['astrometric_excess_noise_sig'][0]
+    return plx,plx_er,bprp,gof_al,d
 
-    return plx,plx_er,bprp,ruwe
+
+def get_gaia(k2id, rad=0.1):
+    
+    ra,dec  = k2id_to_cood(k2id)
+
+    Gaia.MAIN_GAIA_TABLE="gaiadr3.gaia_source"
+    #Gaia.MAIN_GAIA_TABLE="gaiaedr3.gaia_source"
+    #Gaia.MAIN_GAIA_TABLE="gaiadr2.gaia_source"
+    Gaia.ROW_LIMIT  = 1
+    coord   = SkyCoord(ra=ra,dec=dec,unit=(u.degree,u.degree),\
+        frame='icrs')
+    radius  = u.Quantity(rad, u.deg)
+
+    j   = Gaia.cone_search_async(coord, radius)
+    r   = j.get_results()
+    #print(r)
+    #for i in r.columns:
+    #    print(i)
+    #exit()
+    
+    plx     = r['parallax'][0]
+    if plx > 0:
+        plx_er  = r['parallax_error'][0]
+        bprp    = r['bp_rp'][0]
+        ruwe    = r['ruwe'][0]
+        gof_al  = r['astrometric_gof_al'][0]
+        d       = r['astrometric_excess_noise_sig'][0]
+    else:
+        plx,plx_er,bprp,gof_al,d    = get_gaiadr2(k2id, rad=rad)
+        ruwe    = np.nan
+
+    return plx,plx_er,bprp,ruwe,gof_al,d
 
 def get_2mass(k2id, rad=0.1):
     ra,dec  = k2id_to_cood(k2id)
@@ -61,15 +97,45 @@ def get_2mass(k2id, rad=0.1):
 
     return jmag,jmag_er,hmag,hmag_er,kmag,kmag_er
 
+def get_tic(k2id, rad=0.1):
+    ra,dec  = k2id_to_cood(k2id)
+    coord   = SkyCoord(ra=ra,dec=dec,unit=(u.degree,u.degree),\
+        frame='icrs')
+    result = Vizier.query_region(coord, radius=rad*u.deg,
+                                 catalog='J/AJ/156/102/table9') #TIC
+                                 #catalog='I/322A/out')#UCAC4
+    #print(result[0])
+    #for  i in result[0].columns:
+    #    print(i)
+    #exit()
+    if len(result) != 0:
+        vmag    = result[0]['Vmag'][0]
+        return vmag
+    else:
+        return np.nan
+
 def get_tycho(k2id, rad=0.1):
     ra,dec  = k2id_to_cood(k2id)
     coord   = SkyCoord(ra=ra,dec=dec,unit=(u.degree,u.degree),\
         frame='icrs')
     result = Vizier.query_region(coord, radius=rad*u.deg,
                                  catalog='I/239/tyc_main')
-    vmag    = result[0]['Vmag'][0]
-
-    return vmag
+                                 #catalog='I/239/hip_main')
+                                 #catalog='IV/34/epic')
+                                 #catalog='II/285/photo')
+                                 #catalog='I/196/main')
+                                 #catalog='IV/39/tic82') #TIC
+                                 #catalog='J/AJ/156/102/table9') #TIC
+                                 #catalog='I/322A/out')#UCAC4
+    #print(result[0])
+    #for  i in result[0].columns:
+    #    print(i)
+    #exit()
+    if len(result) != 0:
+        vmag    = result[0]['Vmag'][0]
+        return vmag
+    else:
+        return np.nan
 
 def get_lamost(k2id, rad=0.1):
     ra,dec  = k2id_to_cood(k2id)

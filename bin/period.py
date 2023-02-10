@@ -4,9 +4,11 @@ from matplotlib import pyplot as plt
 from transitleastsquares import transitleastsquares as tls
 from transitleastsquares import transit_mask
 import copy
+import random
+from multiprocessing import Pool,cpu_count
 
-def fap(pgram, prob):
-    n   = len(pgram)
+def fap(pgram, prob, ndata):
+    n   = ndata
     med = np.median(pgram)
     std = 1.48*np.median(np.abs(pgram-med))
     m   = len(pgram[(med+std*3 < pgram)])
@@ -25,19 +27,45 @@ def lomb_scargle(data, N=1000, pmin=0.1, pmax=10., prob=0.01):
     flux    = copy.copy(data[1])
 
     timein  = time - time[0]
-    pmin    = pmin*2*np.pi
-    pmax    = pmax*2*np.pi
-    freq    = np.linspace(pmin, pmax, N)
-    
+    freq    = np.linspace(2.*np.pi/pmax, 2.*np.pi/pmin, N)
+
     pgram   = sg.lombscargle(timein, flux, freq)
-    plt.plot(freq, pgram)
-    plt.show()
-    exit()
-    thres   = fap(pgram, prob)
+
+    thres   = fap(pgram, prob, len(time))
 
     f,p     = find_peak(freq, pgram, thres)
 
-    return f/2/np.pi,p,freq/2/np.pi,pgram
+    return 2*np.pi/f,p,2*np.pi/freq,pgram
+
+def lombscargle_wrap(input_list):
+    timein,fapp,freq    = input_list
+    pgram   = sg.lombscargle(timein, fapp, freq)
+    return pgram
+
+
+def sigmin_bootstrap(data, N=1000, pmin=0.1, pmax=10, nboot=100, seed=0):
+    time    = copy.copy(data[0])
+    fluxs   = copy.copy(data[1])
+
+    timein  = time - time[0]
+    freq    = np.linspace(2.*np.pi/pmax, 2.*np.pi/pmin, N)
+
+    np.random.seed(seed)
+    res     = []
+    data_list   = []
+    for i in range(nboot):
+        np.random.shuffle(fluxs)
+        fapp    = copy.copy(fluxs)
+        data_list.append([timein, fapp, freq])
+
+    p   = Pool(cpu_count())
+    res     = p.map(lombscargle_wrap, data_list)
+    p.close()
+    res     = np.hstack(res)
+    res     = np.sort(res)
+    sigmin  = res[int(len(res)*0.999)]
+    return sigmin
+
 
 def tls_periodogram(data, rad_star=1., mas_star=1.):
     data[1]     = data[1] - np.median(data[1]) + 1.

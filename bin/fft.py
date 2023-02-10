@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 def fft(data):
     time    = data[0]
     flux    = data[1]
-    samp_t  = time[2] - time[1]
+    samp_t  = np.median(time[1:] - time[:-1])
     N = len(flux)
 
     fft_flux        = np.fft.fft(flux)
@@ -44,6 +44,49 @@ def highpass_filter(data, cutoff):
     new_data[0] = new_data[0] + data[0,0]
 
     return new_data
+
+def det_maxpeak(p,pow):
+    p_best  = p[(pow==max(pow))]
+    i_p     = int(np.where(p==p_best)[0])
+    i_min   = i_p
+    i_max   = i_p
+    for i in range(i_p):
+        if pow[i_max-1] >= pow[i_max]:
+            break
+        else:
+            i_max -= 1
+    for i in range(len(p) - i_p-1):
+        if pow[i_min+1] >= pow[i_min]:
+            break
+        else:
+            i_min += 1
+
+    return float(p_best), p[i_min], p[i_max]
+
+
+def fftmaxpeak_filter(data):
+    fft_data    = fft(data)
+
+    N   = len(data[0])
+    abs_f       = np.abs(fft_data[1])
+    abs_f       = abs_f/N*2
+    abs_f[0]    = abs_f[0]/2
+    
+    fft_time    = fft_data[0]
+    fft_flux    = fft_data[1]
+    plt.plot(np.abs(fft_time[:int(N/2)-1]), abs_f[:int(N/2)-1])
+    plt.xscale("log")
+    plt.show()
+
+    fbest,fmax,fmin     = det_maxpeak(np.abs(fft_time[:int(N/2)-1]), abs_f[:int(N/2)-1])    
+
+    fft_flux[(fmin < fft_time)&(fft_time < fmax)] = np.median(fft_flux)
+    fft_flux[(fft_time[-1] - fmax < fft_time)&(fft_time < fft_time[-1] - fmin)] =np.median(fft_flux)
+    new_data    = ifft(fft_time, fft_flux)
+
+    return new_data, fbest, fmax, fmin
+    
+
 
 def peak_filter(data, freq_array):
     fft_data    = fft(data)
