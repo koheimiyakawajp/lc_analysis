@@ -10,6 +10,24 @@ import bin.lctips as lt
 import bin.fft as ft
 
 
+def dlwrap(fkey, mkey,k2id):
+    if os.path.isfile(fkey+"_"+mkey+".dat"):
+        print(fkey+"_"+mkey+".dat")
+        print("light curve already exists.")
+    else:
+        print("downloading "+mkey + " light curve.")
+        if mkey=="k2":
+            lc    = gl.k2lc_byepic(k2id)
+        elif mkey=="tess":
+            lc    = gl.tesslc_byepic(k2id)
+        elif mkey=="tess_qlp":
+            lc    = gl.tesslcQLP_byepic(k2id)
+        print("done.")
+
+        if len(lc) != 1:
+            print("save lc data.")
+            np.savetxt(fkey+"_"+mkey+".dat",lc.T)
+
 if __name__=='__main__':
     fname   = sys.argv[1]
     dlist   = np.loadtxt(fname, dtype='unicode',comments='#')
@@ -22,16 +40,7 @@ if __name__=='__main__':
         if tid != -1:
             print("EPIC "+k2id, tid)
             fkey    = "lightcurves/"+k2id
-            if os.path.isfile(fkey+"_k2.dat"):
-                lck2    = np.loadtxt(fkey+"_k2.dat", dtype='f8').T
-                lctess  = np.loadtxt(fkey+"_tess.dat", dtype='f8').T
-            else:
-                lck2    = gl.k2lc_byepic(k2id)
-                print("downloaded k2 data.")
-                lctess  = gl.tesslc_byepic(k2id)
-                if len(lctess) != 1:
-                    print("downloaded tess data.")
-                    np.savetxt("lightcurves/"+k2id+"_k2.dat",lck2.T)
-                    np.savetxt("lightcurves/"+k2id+"_tess.dat",lctess.T)
-            
+            dlwrap(fkey, "k2", k2id) 
+            dlwrap(fkey, "tess", k2id) 
+            dlwrap(fkey, "tess_qlp", k2id) 
             i+=1
