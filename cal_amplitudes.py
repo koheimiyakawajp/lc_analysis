@@ -12,9 +12,68 @@ import bin.lctips as lt
 import bin.fft as ft
 import bin.period as pr
 
-def plotfunc(lck2 ,lck2_1, lck2_nn, lctess, lctess_1, lctess_nn, k2id, tid):
+def ylimits(ydata):
+    med     = np.median(ydata)
+#    mad     = np.median(np.abs(np.median(ydata) - ydata))
+    ysort   = np.sort(ydata)
+    dlen    = len(ydata)
+    sig1    = ysort[int(dlen*0.1585)] - med
+    sig2    = ysort[-int(dlen*0.1585)] - med
+
+    return med+4*sig1, med+4*sig2
+
+def plotfunc3(lck2 ,lck2_1, lck2_nn,  lctess, lctess_1, lctess_nn, lctqlp, lctqlp_1, lctqlp_nn, k2id, tid):
     toff        = int(lck2[0,0])
-    fig     = plt.figure()
+    fig     = plt.figure(figsize=(5,6))
+    plt.rcParams["font.family"] = "Arial"   # 使用するフォント
+    plt.rcParams["font.size"] = 10  
+    ax1     = fig.add_subplot(3,1,1)
+    ax1.scatter(lck2[0]-toff,lck2[1],s=0.7,c="black")
+    ax1.scatter(lck2_1[0]-toff,lck2_1[1]+1,s=0.5,c="dimgrey")
+    ax1.scatter(lck2_1[0]-toff,lck2_nn[1]+1,s=0.3,c="orangered")
+
+    k2m,k2u,k2l = mes_amplitude(lck2_nn[1])
+    ax1.axhline(k2m+1, c='black',ls='--',lw=0.5)
+    ax1.axhline(k2u+1, c='black',ls=':',lw=0.5)
+    ax1.axhline(k2l+1, c='black',ls=':',lw=0.5)
+    ax1.set_ylim((ylimits(lck2[1])))
+
+    ax2     = fig.add_subplot(3,1,2)
+    ax2.scatter(lctess[0]-toff,lctess[1],s=0.7,c="black")
+    ax2.scatter(lctess_1[0]-toff,lctess_1[1]+1,s=0.5,c="dimgrey")
+    ax2.scatter(lctess_1[0]-toff,lctess_nn[1]+1,s=0.3,c="orangered")
+
+    tsm,tsu,tsl = mes_amplitude(lctess_nn[1])
+    ax2.axhline(tsm+1, c='black',ls='--',lw=0.5)
+    ax2.axhline(tsu+1, c='black',ls=':',lw=0.5)
+    ax2.axhline(tsl+1, c='black',ls=':',lw=0.5)
+    ax2.set_ylim((ylimits(lctess[1])))
+
+    ax3     = fig.add_subplot(3,1,3)
+    ax3.scatter(lctqlp[0]-toff,  lctqlp[1],s=0.7,c="black")
+    ax3.scatter(lctqlp_1[0]-toff,lctqlp_1[1]+1,s=0.5,c="dimgrey")
+    ax3.scatter(lctqlp_1[0]-toff,lctqlp_nn[1]+1,s=0.3,c="orangered")
+
+    tsm,tsu,tsl = mes_amplitude(lctqlp_nn[1])
+    ax3.axhline(tsm+1, c='black',ls='--',lw=0.5)
+    ax3.axhline(tsu+1, c='black',ls=':',lw=0.5)
+    ax3.axhline(tsl+1, c='black',ls=':',lw=0.5)
+    ax3.set_ylim((ylimits(lctqlp[1])))
+
+
+    fig.suptitle("EPIC "+ k2id+ " / "+ tid)
+    fig.supxlabel('time - '+str(toff)+" [d]");fig.supylabel('relative flux')
+    fig.tight_layout()
+
+    plt.savefig("figure/"+k2id+".png", dpi=200)
+    plt.clf();plt.close()
+    #plt.show()
+    #exit()
+
+
+def plotfunc2(lck2 ,lck2_1, lck2_nn, lctess, lctess_1, lctess_nn, k2id, tid):
+    toff        = int(lck2[0,0])
+    fig     = plt.figure(figsize=(5,4))
     plt.rcParams["font.family"] = "Arial"   # 使用するフォント
     plt.rcParams["font.size"] = 10  
     ax1     = fig.add_subplot(2,1,1)
@@ -26,6 +85,7 @@ def plotfunc(lck2 ,lck2_1, lck2_nn, lctess, lctess_1, lctess_nn, k2id, tid):
     ax1.axhline(k2m+1, c='black',ls='--',lw=0.5)
     ax1.axhline(k2u+1, c='black',ls=':',lw=0.5)
     ax1.axhline(k2l+1, c='black',ls=':',lw=0.5)
+    ax1.set_ylim((ylimits(lck2[1])))
 
     ax2     = fig.add_subplot(2,1,2)
     ax2.scatter(lctess[0]-toff,lctess[1],s=0.7,c="black")
@@ -36,18 +96,34 @@ def plotfunc(lck2 ,lck2_1, lck2_nn, lctess, lctess_1, lctess_nn, k2id, tid):
     ax2.axhline(tsm+1, c='black',ls='--',lw=0.5)
     ax2.axhline(tsu+1, c='black',ls=':',lw=0.5)
     ax2.axhline(tsl+1, c='black',ls=':',lw=0.5)
+    ax2.set_ylim((ylimits(lctess[1])))
+
     fig.suptitle("EPIC "+ k2id+ " / "+ tid)
-    fig.supxlabel('time - '+str(toff)+" [d]")
-    fig.supylabel('relative flux')
+    fig.supxlabel('time - '+str(toff)+" [d]");fig.supylabel('relative flux')
     fig.tight_layout()
 
+    #plt.show()
+    #exit()
     plt.savefig("figure/"+k2id+".png", dpi=200)
+    plt.clf();plt.close()
 
 def lc_clean(lc, sepscale=10):
     sp_lc   = lt.split_discon(lc, scale=sepscale)
     dl      = []
+    #plt.scatter(lc[0],lc[1])
+    #plt.scatter(sp_lc[0][0],sp_lc[0][1])
+    #plt.show()
+    #exit()
     for lc_parts in sp_lc:
-        det_lc  = lt.detrend_lc(lc_parts, npoint=5)
+        binsep  = 10 #day
+        trange  = lc_parts[0,-1] - lc_parts[0,0]
+        npoint  = int(trange/binsep)
+        if npoint>2:
+            det_lc  = lt.detrend_lc(lc_parts, npoint=npoint)
+        else:
+            det_lc  = lc_parts
+            det_lc[1]  -= np.median(det_lc[1])
+        #print("***** ", np.median(det_lc[1]))
         cln_lc  = lt.remove_outlier(det_lc, nsigma=5)
         dl.append(cln_lc)
     dl_st   = np.hstack(dl)
@@ -136,15 +212,22 @@ def remove_harmonics(presult):
 
 
 def period_analysis(data, title='--'):
-    _,_,p,pow   = pr.lomb_scargle(data,N=int(1e4),pmin=0.1,pmax=35)
+    trange      = data[0,-1] - data[0,0]
+    pmax        = trange//2
+    pmin        = 0.1
+    ngrid       = pmax//0.005
+    _,_,p,pow   = pr.lomb_scargle(data,N=int(ngrid),pmin=pmin,pmax=pmax)
     pgm         = np.array((p,pow))
     print("calculating sigmin val.")
-    sigmin      = pr.sigmin_bootstrap(data,N=int(1e4),pmin=0.1,pmax=35,nboot=100, seed=300)
-    #sigmin  = 1e-4
+    sigmin      = pr.sigmin_bootstrap(data,N=int(ngrid),pmin=pmin,pmax=pmax,nboot=100, seed=300)
+    #sigmin  = 1
     peaks   = argrelextrema(pow, np.greater)
 
     pgm_peak_ok = copy(pgm[:,peaks])
+    #print(pgm_peak_ok)
     pgm_peak_ok = pgm_peak_ok[:,(pgm_peak_ok[1]>sigmin)]#abovethres
+    if len(pgm_peak_ok) == 2:
+        return np.nan
     p1          = pgm[0,(pgm[1]==np.max(pgm[1]))]#best period
     pgm_peak20  = pgm_peak_ok[:,((pgm_peak_ok[0]>=p1*0.80)&(pgm_peak_ok[0]<=p1*1.2))]#pm20% 
     pgm_peakan  = pgm_peak_ok[:,((pgm_peak_ok[0]<p1*0.80)|(pgm_peak_ok[0]>p1*1.2))]#outer than20% 
@@ -184,48 +267,85 @@ if __name__=='__main__':
     epiclist    = dlist.T
 
     i = 0
-    out_array   = []
+    out_array   = [["#ID", "amp_k2", "er_k2", "amp_tess", "er_tess", "amp_qlp", "er_qlp"]]
     for k2id in epiclist:
         tid     = gl.EPIC_to_TIC(k2id)
         if tid != -1:
             print("EPIC "+k2id, tid)
             fkey    = "lightcurves/"+k2id
-            if os.path.isfile(fkey+"_k2.dat"):
-                print("loading lightcurves")
+            flg     = 0
+            if os.path.isfile(fkey+"_k2.dat"): #----------------------
+                print("loading k2 lightcurve.")
                 lck2    = np.loadtxt(fkey+"_k2.dat", dtype='f8').T
-                lctess  = np.loadtxt(fkey+"_tess.dat", dtype='f8').T
                 
                 print("processing K2 data.")
                 lck2_1      = lc_clean(lck2, 100)
                 #ft.plot_freq(lck2_1)
                 print("running period analysis for K2 data.")
                 pres_k2     = period_analysis(lck2_1,k2id + " K2")
+                if pres_k2 is not np.nan:
+                    np.savetxt("period/"+k2id+"_k2.dat", pres_k2)
                 print("measuring amplitude for K2 data.")
                 lck2_nn,ampk2,erk2  = mes_wrap(lck2_1, wsigma=3)
+                flg     = 1
+                
+            if os.path.isfile(fkey+"_tess.dat"): #--------------------
+                print("loading tess lightcurve.")
+                lctess  = np.loadtxt(fkey+"_tess.dat", dtype='f8').T
 
                 print("processing TESS data.")
                 lctess_1    = lc_clean(lctess, 1e8)
-                print("running period analysis for TESS data.")
-                pres_tess   = period_analysis(lctess_1,k2id + " TESS")
+                #print("running period analysis for TESS data.")
+                #pres_tess   = period_analysis(lctess_1,k2id + " TESS")
                 print("measuring amplitude for TESS data.")
                 lctess_nn,amptess,ertess  = mes_wrap(lctess_1, wsigma=3)
 
-                output      = np.array([k2id, ampk2, erk2, amptess, ertess], dtype='unicode')
-                
+                flg     += 2
+            else:
+                lctess_nn,amptess,ertess  = np.nan,np.nan,np.nan
+
+            if os.path.isfile(fkey+"_tess_qlp.dat"): #-----------------
+                print("loading tess_qlp lightcurve.")
+                lctqlp  = np.loadtxt(fkey+"_tess_qlp.dat", dtype='f8').T
+
+                print("processing TESS QLP data.")
+                lctqlp_1    = lc_clean(lctqlp, 100)
+                print("running period analysis for TESS QLP data.")
+                pres_tqlp   = period_analysis(lctqlp_1,k2id + " TESS_QLP")
+                if pres_tqlp is not np.nan:
+                    np.savetxt("period/"+k2id+"_tess_qlp.dat", pres_tqlp)
+
+                print("measuring amplitude for TESS QLP data.")
+                lctqlp_nn,amptqlp,ertqlp  = mes_wrap(lctqlp_1, wsigma=3)
+
+                flg     += 3
+            else:
+                lctqlp_nn,amptqlp,ertqlp  = np.nan,np.nan,np.nan
+
+            if flg>=3:
+                output      = np.array([k2id, ampk2, erk2, amptess, ertess, amptqlp, ertqlp], dtype='unicode')
                 out_array.append(output)
 
                 #ft.plot_freq(lck2_1)
                 #ft.plot_freq(lctess_1)
                 #plt.errorbar(ampk2, amptess, xerr=erk2, yerr=ertess, fmt='.')
-
-                plotfunc(lck2, lck2_1, lck2_nn, lctess, lctess_1, lctess_nn,\
+            if flg==6:
+                plotfunc3(lck2, lck2_1, lck2_nn, lctess, lctess_1, lctess_nn,\
+                    lctqlp, lctqlp_1, lctqlp_nn, k2id, tid)
+            elif flg==3:
+                plotfunc2(lck2, lck2_1, lck2_nn, lctess, lctess_1, lctess_nn,\
                         k2id, tid)
+            elif flg==4:
+                plotfunc2(lck2, lck2_1, lck2_nn, lctqlp, lctqlp_1, lctqlp_nn,\
+                        k2id, tid+" (QLP)")
 
                 
-                i+=1
-                if i==20:
-                    outfilename = "result/" + fname.split(".")[0] + "_out.dat"
-                    np.savetxt(outfilename, np.array(out_array, dtype='f8'), fmt='%s')
+                #i+=1
+                #if i==20:
+                #    outfilename = "result/" + fname.split(".")[0] + "_out.dat"
+                #    np.savetxt(outfilename, np.array(out_array, dtype='f8'), fmt='%s')
+    outfilename = "result/" + fname.split(".")[0] + "_out.dat"
+    np.savetxt(outfilename, out_array, fmt='%s')
             #    #plt.plot(np.linspace(0,0.05,10), np.linspace(0,0.05,10), lw=1, c='black', ls='--')
             #    #plt.xlim((0,0.02))
             #    #plt.ylim((0,0.02))

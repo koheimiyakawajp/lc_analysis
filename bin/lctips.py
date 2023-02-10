@@ -51,14 +51,19 @@ def med_bin(array, k):
     return res_array.T
 
 def remove_outlier(data, nsigma=4):
+    #plt.scatter(data[0],data[1],s=1)
     med     = np.median(data[1])
     mad     = np.median(np.abs(data[1] - med))
     std     = 1.48*mad
+    #print(std)
     thres_p = med + std*nsigma
     thres_n = med - std*nsigma
 
     data_r  = copy.copy(data)
     data_r[1,((data[1]<thres_n)|(thres_p<data[1]))] = med
+    #plt.scatter(data_r[0],data_r[1],s=0.8)
+    #plt.show()
+    #exit()
     return data_r
 
 def remove_flare(data, nsigma=4):
