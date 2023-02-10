@@ -212,8 +212,9 @@ def remove_harmonics(presult):
 
 
 def period_analysis(data, title='--'):
-    trange      = data[0,-1] - data[0,0]
-    pmax        = trange//2
+    #trange      = data[0,-1] - data[0,0]
+    #pmax        = trange//2
+    pmax        = 35
     pmin        = 0.1
     ngrid       = pmax//0.005
     _,_,p,pow   = pr.lomb_scargle(data,N=int(ngrid),pmin=pmin,pmax=pmax)
