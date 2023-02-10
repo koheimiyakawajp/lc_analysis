@@ -25,7 +25,7 @@ def ylimits(ydata):
 def plotfunc3(lck2 ,lck2_1, lck2_nn,  lctess, lctess_1, lctess_nn, lctqlp, lctqlp_1, lctqlp_nn, k2id, tid):
     toff        = int(lck2[0,0])
     fig     = plt.figure(figsize=(5,6))
-    plt.rcParams["font.family"] = "Arial"   # 使用するフォント
+    #plt.rcParams["font.family"] = "cmss10"   # 使用するフォント
     plt.rcParams["font.size"] = 10  
     ax1     = fig.add_subplot(3,1,1)
     ax1.scatter(lck2[0]-toff,lck2[1],s=0.7,c="black")
@@ -74,7 +74,7 @@ def plotfunc3(lck2 ,lck2_1, lck2_nn,  lctess, lctess_1, lctess_nn, lctqlp, lctql
 def plotfunc2(lck2 ,lck2_1, lck2_nn, lctess, lctess_1, lctess_nn, k2id, tid):
     toff        = int(lck2[0,0])
     fig     = plt.figure(figsize=(5,4))
-    plt.rcParams["font.family"] = "Arial"   # 使用するフォント
+    #plt.rcParams["font.family"] = "cmss10"   # 使用するフォント
     plt.rcParams["font.size"] = 10  
     ax1     = fig.add_subplot(2,1,1)
     ax1.scatter(lck2[0]-toff,lck2[1],s=0.7,c="black")
@@ -220,13 +220,13 @@ def period_analysis(data, title='--'):
     pgm         = np.array((p,pow))
     print("calculating sigmin val.")
     sigmin      = pr.sigmin_bootstrap(data,N=int(ngrid),pmin=pmin,pmax=pmax,nboot=100, seed=300)
-    #sigmin  = 1
+    #sigmin  = 1e-3
     peaks   = argrelextrema(pow, np.greater)
 
     pgm_peak_ok = copy(pgm[:,peaks])
     #print(pgm_peak_ok)
     pgm_peak_ok = pgm_peak_ok[:,(pgm_peak_ok[1]>sigmin)]#abovethres
-    if len(pgm_peak_ok) == 2:
+    if len(pgm_peak_ok[0]) == 0:
         return np.nan
     p1          = pgm[0,(pgm[1]==np.max(pgm[1]))]#best period
     pgm_peak20  = pgm_peak_ok[:,((pgm_peak_ok[0]>=p1*0.80)&(pgm_peak_ok[0]<=p1*1.2))]#pm20% 
@@ -244,7 +244,7 @@ def period_analysis(data, title='--'):
     presult     = np.array(presult)
     presult2    = remove_harmonics(presult)
     plt.figure(figsize=(5,3))
-    plt.rcParams["font.family"] = "Arial"   # 使用するフォント
+    #plt.rcParams["font.family"] = "cmss10"   # 使用するフォント
     plt.rcParams["font.size"] = 10  
     plt.plot(pgm[0],pgm[1],lw=1.,c='black')
     plt.scatter(presult[:,0], presult[:,1],c='royalblue',s=10)
