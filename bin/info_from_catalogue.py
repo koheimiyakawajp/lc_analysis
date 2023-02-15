@@ -46,6 +46,48 @@ def get_gaiadr2(k2id, rad=0.1):
     return plx,plx_er,bprp,gof_al,d
 
 
+def get_gaia_temperature(k2id, rad=0.1):
+    
+    ra,dec  = k2id_to_cood(k2id)
+
+    Gaia.MAIN_GAIA_TABLE="gaiadr3.gaia_source"
+    #Gaia.MAIN_GAIA_TABLE="gaiaedr3.gaia_source"
+    #Gaia.MAIN_GAIA_TABLE="gaiadr2.gaia_source"
+    Gaia.ROW_LIMIT  = 1
+    coord   = SkyCoord(ra=ra,dec=dec,unit=(u.degree,u.degree),\
+        frame='icrs')
+    radius  = u.Quantity(rad, u.deg)
+
+    j   = Gaia.cone_search_async(coord, radius)
+    r   = j.get_results()
+    #for i in r.columns:
+    #    print(i)
+
+    if (r['teff_gspphot'][0] is np.ma.masked) :
+        Gaia.MAIN_GAIA_TABLE="gaiadr2.gaia_source"
+        Gaia.ROW_LIMIT  = 1
+        coord   = SkyCoord(ra=ra,dec=dec,unit=(u.degree,u.degree),\
+            frame='icrs')
+        radius  = u.Quantity(rad, u.deg)
+
+        j   = Gaia.cone_search_async(coord, radius)
+        r   = j.get_results()
+        #for i in r.columns:
+        #    print(i)
+        #print(r['teff_val'][0])
+        #print(r['teff_percentile_lower'][0])
+        #print(r['teff_percentile_upper'][0])
+        teff    = r['teff_val'][0]
+        er1     = r['teff_percentile_lower'][0]
+        er2     = r['teff_percentile_upper'][0]
+
+    else:
+        teff    = r['teff_gspphot'][0]
+        er1     = r['teff_gspphot_lower'][0]
+        er2     = r['teff_gspphot_upper'][0]
+    
+    return teff, (er2 - er1)/2.
+
 def get_gaia(k2id, rad=0.1):
     
     ra,dec  = k2id_to_cood(k2id)
@@ -63,6 +105,8 @@ def get_gaia(k2id, rad=0.1):
     #print(r)
     #for i in r.columns:
     #    print(i)
+    ##print(r['teff_gspphot'][0])
+    #print(r['teff_val'][0])
     #exit()
     
     plx     = r['parallax'][0]

@@ -36,10 +36,12 @@ def Teff_mann2015(magV, magJ, FeH):
     return res*3500, 42
 
 def Teff_joint(magV, magJ, FeH):
-    if magV - magJ < 3:
+    if (1.2 < magV - magJ) & (magV - magJ < 3):
         teff,er = Teff_boyajian2012(magV, magJ, FeH)
-    else:
+    elif 3 < magV - magJ:
         teff,er = Teff_mann2015(magV, magJ, FeH)
+    else:
+        return np.nan, np.nan
 
     return teff, er
 
@@ -105,12 +107,15 @@ def get_propdict(k2id, FeH=0.0, rad=0.01):
     mass_er     = float(mass_er)
 
     teff,teff_er1   = Teff_joint(vmag,jmag,FeH)
-    teff            = float(teff)
-    teff_u,_        = Teff_joint(vmag,jmag+jer,FeH)
-    teff_l,_        = Teff_joint(vmag,jmag-jer,FeH)
-    teff_er2        = (abs(teff - teff_u) + abs(teff - teff_l))/2.
-    teff_er         = np.sqrt(teff_er1**2 + teff_er2**2)
-    teff_er         = float(teff_er)
+    if teff == np.nan:
+        teff,teff_er    = bc.get_gaia_temperature(k2id)
+    else:
+        teff            = float(teff)
+        teff_u,_        = Teff_joint(vmag,jmag+jer,FeH)
+        teff_l,_        = Teff_joint(vmag,jmag-jer,FeH)
+        teff_er2        = (abs(teff - teff_u) + abs(teff - teff_l))/2.
+        teff_er         = np.sqrt(teff_er1**2 + teff_er2**2)
+        teff_er         = float(teff_er)
 
     return {"k2id": k2id, "jmag": jmag, "jmag_er": jer, "hmag" : hmag, "hmag_er": her,\
         "kmag" : kmag, "kamg_er" : ker, "vmag" : vmag, "plx" : rd(plx,3), "plx_er" : rd(plx_er,3),\
@@ -127,7 +132,10 @@ if __name__=='__main__':
     if len(sys.argv)==2:
 
         k2id    = sys.argv[1]
-        propdict    = get_propdict(k2id)
+        #teff,er = bc.get_gaia_temperature(k2id)
+        #print(teff, er)
+        #exit()
+        propdict    = get_propdict(k2id, FeH=0.15)
         print(propdict)
 
     elif len(sys.argv)==3:
@@ -138,11 +146,11 @@ if __name__=='__main__':
         data    = []
         for k2id in nlist:
             print(k2id)
-            dline   = get_propdict(k2id, FeH=FeH, rad=0.1)
+            dline   = get_propdict(k2id, FeH=FeH, rad=0.01)
             print(dline)
             data.append(dline)
 
-        with open("result/hyades_stellarprop.csv", 'w', encoding='utf-8',newline='')as csvfile:
+        with open("result/"+fname.split(".")[0]+"_stellarprop.csv", 'w', encoding='utf-8',newline='')as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames = fieldname)
             writer.writeheader()
             writer.writerows(data) 
