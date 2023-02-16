@@ -138,22 +138,28 @@ def mes_amplitude(flux):
 
 def roop_mes(data_nn, pbest):
     dlen    = data_nn[0,-1] - data_nn[0,0]
-    roopn   = int(dlen/pbest) 
+    roopn   = int(dlen/pbest) + 1
     t_beg   = data_nn[0,0]
 
     amp_ar  = []
     for i in range(roopn):
         t_a     = t_beg + i*pbest
         t_b     = t_beg + (i+1)*pbest
+        #plt.axvline(t_b)
         con     = ((t_a<=data_nn[0])&(data_nn[0]<t_b))
         d_i     = data_nn[:,con]
         if np.any(con):
-            plt.scatter(d_i[0], d_i[1], s=2)
+            #plt.scatter(d_i[0], d_i[1], s=2)
             if (d_i[0,-1] - d_i[0,0]) > 0.9*pbest:
                 _,b,c   = mes_amplitude(d_i[1])
                 amp     = np.abs(b-c)/2.
                 amp_ar.append(amp)
-    return np.mean(amp_ar), np.std(amp_ar)
+    if len(amp_ar) == 0:
+        return np.nan, np.nan
+    elif len(amp_ar) == 1:
+        return amp, np.nan
+    else:
+        return np.mean(amp_ar), np.std(amp_ar)
 
 def mes_wrap(data, pbest, wsigma=3):
     data_nn     = ft.rm_whitenoise(data,wsigma)
@@ -316,8 +322,12 @@ if __name__=='__main__':
                     pres_k2     = period_analysis(lck2_1,k2id + " K2")
                     if pres_k2 is not np.nan:
                         np.savetxt(fileperi, pres_k2)
+                if pres_k2.ndim == 2:
+                    pbest   = pres_k2[0,0]
+                elif pres_k2.ndim == 1:
+                    pbest   = pres_k2[0]
                 print("measuring amplitude for K2 data.")
-                lck2_nn,ampk2,erk2  = mes_wrap(lck2_1, pres_k2[0,0], wsigma=3)
+                lck2_nn,ampk2,erk2  = mes_wrap(lck2_1, pbest, wsigma=3)
                 flg     = 1
                 
             if os.path.isfile(fkey+"_tess.dat"): #--------------------
@@ -329,7 +339,8 @@ if __name__=='__main__':
                 #print("running period analysis for TESS data.")
                 #pres_tess   = period_analysis(lctess_1,k2id + " TESS")
                 print("measuring amplitude for TESS data.")
-                lctess_nn,amptess,ertess  = mes_wrap(lctess_1,pres_k2[0,0], wsigma=3)
+                lctess_nn,amptess,ertess  = mes_wrap(lctess_1, pbest, wsigma=3)
+                print(amptess, ertess)
 
                 flg     += 2
             else:
@@ -352,7 +363,7 @@ if __name__=='__main__':
                         np.savetxt(fileperi, pres_tqlp)
 
                 print("measuring amplitude for TESS QLP data.")
-                lctqlp_nn,amptqlp,ertqlp  = mes_wrap(lctqlp_1,pres_k2[0,0], wsigma=3)
+                lctqlp_nn,amptqlp,ertqlp  = mes_wrap(lctqlp_1, pbest, wsigma=3)
 
                 flg     += 3
             else:
