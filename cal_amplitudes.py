@@ -136,13 +136,38 @@ def mes_amplitude(flux):
     fl      = fsort[int(flen*0.05)]
     return np.median(flux), fl, fu
 
-def mes_wrap(data, wsigma=3):
+def roop_mes(data_nn, pbest):
+    dlen    = data_nn[0,-1] - data_nn[0,0]
+    roopn   = int(dlen/pbest) 
+    t_beg   = data_nn[0,0]
+
+    amp_ar  = []
+    for i in range(roopn):
+        t_a     = t_beg + i*pbest
+        t_b     = t_beg + (i+1)*pbest
+        con     = ((t_a<=data_nn[0])&(data_nn[0]<t_b))
+        d_i     = data_nn[:,con]
+        if np.any(con):
+            plt.scatter(d_i[0], d_i[1], s=2)
+            if (d_i[0,-1] - d_i[0,0]) > 0.9*pbest:
+                _,b,c   = mes_amplitude(d_i[1])
+                amp     = np.abs(b-c)/2.
+                amp_ar.append(amp)
+    return np.mean(amp_ar), np.std(amp_ar)
+
+def mes_wrap(data, pbest, wsigma=3):
     data_nn     = ft.rm_whitenoise(data,wsigma)
-    data2       = data[1] - data_nn[1]
-    _,b,c       = mes_amplitude(data2)
-    er          = np.abs(b - c)/2.
-    _,b,c       = mes_amplitude(data_nn[1])
-    amp         = np.abs(b - c)/2.
+
+    #plt.scatter(data[0], data[1], s=1)
+    #print(roop_mes(data_nn, pbest))
+    amp,er  = roop_mes(data_nn, pbest)
+    #plt.scatter(data_nn[0], data_nn[1], s=1)
+    #plt.show()
+    #data2       = data[1] - data_nn[1]
+    #_,b,c       = mes_amplitude(data2)
+    #er          = np.abs(b - c)/2.
+    #_,b,c       = mes_amplitude(data_nn[1])
+    #amp         = np.abs(b - c)/2.
 
     return data_nn,amp, er
 
@@ -282,12 +307,17 @@ if __name__=='__main__':
                 print("processing K2 data.")
                 lck2_1      = lc_clean(lck2, 100)
                 #ft.plot_freq(lck2_1)
-                print("running period analysis for K2 data.")
-                pres_k2     = period_analysis(lck2_1,k2id + " K2")
-                if pres_k2 is not np.nan:
-                    np.savetxt("period/"+k2id+"_k2.dat", pres_k2)
+                fileperi    = "period/"+k2id+"_k2.dat"
+                if os.path.isfile(fileperi):
+                    print("period file for K2 data already exists.")
+                    pres_k2     = np.loadtxt(fileperi, dtype='f8')
+                else:
+                    print("running period analysis for K2 data.")
+                    pres_k2     = period_analysis(lck2_1,k2id + " K2")
+                    if pres_k2 is not np.nan:
+                        np.savetxt(fileperi, pres_k2)
                 print("measuring amplitude for K2 data.")
-                lck2_nn,ampk2,erk2  = mes_wrap(lck2_1, wsigma=3)
+                lck2_nn,ampk2,erk2  = mes_wrap(lck2_1, pres_k2[0,0], wsigma=3)
                 flg     = 1
                 
             if os.path.isfile(fkey+"_tess.dat"): #--------------------
@@ -299,7 +329,7 @@ if __name__=='__main__':
                 #print("running period analysis for TESS data.")
                 #pres_tess   = period_analysis(lctess_1,k2id + " TESS")
                 print("measuring amplitude for TESS data.")
-                lctess_nn,amptess,ertess  = mes_wrap(lctess_1, wsigma=3)
+                lctess_nn,amptess,ertess  = mes_wrap(lctess_1,pres_k2[0,0], wsigma=3)
 
                 flg     += 2
             else:
@@ -311,13 +341,18 @@ if __name__=='__main__':
 
                 print("processing TESS QLP data.")
                 lctqlp_1    = lc_clean(lctqlp, 100)
-                print("running period analysis for TESS QLP data.")
-                pres_tqlp   = period_analysis(lctqlp_1,k2id + " TESS_QLP")
-                if pres_tqlp is not np.nan:
-                    np.savetxt("period/"+k2id+"_tess_qlp.dat", pres_tqlp)
+                fileperi    = "period/"+k2id+"_tess_qlp.dat"
+                if os.path.isfile(fileperi):
+                    print("period file for TESS QLP data already exists.")
+                    pres_tqlp   = np.loadtxt(fileperi, dtype='f8')
+                else:
+                    print("running period analysis for TESS QLP data.")
+                    pres_tqlp   = period_analysis(lctqlp_1,k2id + " TESS_QLP")
+                    if pres_tqlp is not np.nan:
+                        np.savetxt(fileperi, pres_tqlp)
 
                 print("measuring amplitude for TESS QLP data.")
-                lctqlp_nn,amptqlp,ertqlp  = mes_wrap(lctqlp_1, wsigma=3)
+                lctqlp_nn,amptqlp,ertqlp  = mes_wrap(lctqlp_1,pres_k2[0,0], wsigma=3)
 
                 flg     += 3
             else:

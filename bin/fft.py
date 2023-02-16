@@ -120,7 +120,8 @@ def rm_whitenoise(data, nsigma):
 
     fft_flux[(abs_fft_flux < median+wh_level)]  = 0
     new_data    = ifft(fft_time, fft_flux)
-    new_data[0] = new_data[0] + data[0,0]
+    #new_data[0] = new_data[0] + data[0,0]
+    new_data[0] = data[0]
 
     return new_data
 
