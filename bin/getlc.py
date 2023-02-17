@@ -65,11 +65,12 @@ def merge_lightcurves(search_result, author, texp):
 def EPIC_to_TIC(EPICid):
     df      = pd.read_csv("./k2ticxmatch_20210831.csv",dtype='unicode')
     target  = df[df['epic']==EPICid]
-    if math.isnan(float(target.iat[0,0])):
-        return -1
-    else:
+    #if math.isnan(float(target.iat[0,0])):
+    if len(target) == 1:
         tid     = target.iat[0,0]
         return "TIC "+tid
+    else:
+        return -1
 
 def tesslcTESSSPOC_byepic(epicid):
     TIC     = EPIC_to_TIC(epicid)

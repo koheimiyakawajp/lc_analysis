@@ -44,3 +44,5 @@ if __name__=='__main__':
             dlwrap(fkey, "tess", k2id) 
             dlwrap(fkey, "tess_qlp", k2id) 
             i+=1
+        else:
+            print("EPIC " + k2id +" does not match any TICs.")
