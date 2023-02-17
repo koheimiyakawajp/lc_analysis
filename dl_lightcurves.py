@@ -13,11 +13,11 @@ vfile   = "lightcurves/vaclist.dat"
 def dlwrap(fkey, mkey,k2id, vaclist):
     if np.any(vaclist==k2id+mkey):
         print("light curve does not exist on remote server.")
-        return 1
+        return 1, vaclist
     elif os.path.isfile(fkey+"_"+mkey+".dat"):
         print(fkey+"_"+mkey+".dat")
         print("light curve already exists.")
-        return 2
+        return 2, vaclist
     else:
         print("downloading "+mkey + " light curve.")
         if mkey=="k2":
@@ -31,10 +31,10 @@ def dlwrap(fkey, mkey,k2id, vaclist):
         if len(lc) != 1:
             print("save lc data.")
             np.savetxt(fkey+"_"+mkey+".dat",lc.T)
-            return 0
+            return 0, vaclist
         else:
-            vaclist.append(k2id+mkey)
-            return 1
+            vaclist     = np.hstack((vaclist,k2id+mkey))
+            return 1, vaclist
 
 if __name__=='__main__':
     fname   = sys.argv[1]
@@ -54,10 +54,10 @@ if __name__=='__main__':
         if tid != -1:
             print("EPIC "+k2id, tid)
             fkey    = "lightcurves/"+k2id
-            flg     = dlwrap(fkey, "k2", k2id, vaclist) 
+            flg,vaclist    = dlwrap(fkey, "k2", k2id, vaclist) 
             if flg != 1:
-                dlwrap(fkey, "tess", k2id, vaclist) 
-                dlwrap(fkey, "tess_qlp", k2id, vaclist) 
+                _, vaclist    = dlwrap(fkey, "tess", k2id, vaclist) 
+                _, vaclist    = dlwrap(fkey, "tess_qlp", k2id, vaclist) 
             i+=1
         else:
             print("EPIC " + k2id +" does not match any TICs.")
