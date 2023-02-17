@@ -9,6 +9,7 @@ import sys
 from astroquery.vizier import Vizier
 from astroquery.ipac.irsa import Irsa
 from astropy.table import Table
+import math
 
 
 def k2id_to_cood(k2id):
@@ -22,12 +23,12 @@ def k2id_to_cood(k2id):
         ra          = hittar[2]
         dec         = hittar[3]
 
-        return ra,dec
+        return float(ra),float(dec)
 
 def get_gaiadr2(k2id, rad=0.1):
     
     ra,dec  = k2id_to_cood(k2id)
-    if ra == np.nan:
+    if math.isnan(ra):
         return np.nan,np.nan,np.nan,np.nan,np.nan
 
     Gaia.MAIN_GAIA_TABLE="gaiadr2.gaia_source"
@@ -54,7 +55,7 @@ def get_gaiadr2(k2id, rad=0.1):
 def get_gaia_temperature(k2id, rad=0.1):
     
     ra,dec  = k2id_to_cood(k2id)
-    if ra == np.nan:
+    if math.isnan(ra):
         return np.nan,np.nan
 
     Gaia.MAIN_GAIA_TABLE="gaiadr3.gaia_source"
@@ -98,7 +99,7 @@ def get_gaia_temperature(k2id, rad=0.1):
 def get_gaia(k2id, rad=0.1):
     
     ra,dec  = k2id_to_cood(k2id)
-    if ra == np.nan:
+    if math.isnan(ra):
         return np.nan,np.nan,np.nan,np.nan,np.nan,np.nan
 
     Gaia.MAIN_GAIA_TABLE="gaiadr3.gaia_source"
@@ -133,7 +134,7 @@ def get_gaia(k2id, rad=0.1):
 
 def get_2mass(k2id, rad=0.1):
     ra,dec  = k2id_to_cood(k2id)
-    if ra == np.nan:
+    if math.isnan(ra):
         return np.nan,np.nan,np.nan,np.nan,np.nan,np.nan
     coord   = SkyCoord(ra=ra,dec=dec,unit=(u.degree,u.degree),\
         frame='icrs')
@@ -154,7 +155,7 @@ def get_2mass(k2id, rad=0.1):
 
 def get_tic(k2id, rad=0.1):
     ra,dec  = k2id_to_cood(k2id)
-    if ra == np.nan:
+    if math.isnan(ra):
         return np.nan
     coord   = SkyCoord(ra=ra,dec=dec,unit=(u.degree,u.degree),\
         frame='icrs')
@@ -196,7 +197,7 @@ def get_tycho(k2id, rad=0.1):
 
 def get_lamost(k2id, rad=0.1):
     ra,dec  = k2id_to_cood(k2id)
-    if ra == np.nan:
+    if math.isnan(ra):
         return np.nan
     coord   = SkyCoord(ra=ra,dec=dec,unit=(u.degree,u.degree),\
         frame='icrs')
