@@ -124,6 +124,7 @@ def get_propdict(k2id, FeH=0.0, rad=0.01):
 
 
 import csv
+import os
 
 if __name__=='__main__':
     
@@ -140,19 +141,37 @@ if __name__=='__main__':
 
     elif len(sys.argv)==3:
         fname   = sys.argv[1]
+        csvname = "result/"+fname.split(".")[0]+"_stellarprop.csv"
+        if os.path.isfile(csvname):
+            csvdata = np.loadtxt(csvname, dtype='unicode', delimiter=',').T
+            exid    = csvdata[0]
+            flg     = 0
+        else:
+            exid    = np.array(("00","00"), dtype='unicode')
+            flg     = 1
+
         FeH     = float(sys.argv[2])
         nlist   = np.loadtxt(fname, dtype='unicode',comments='#').T
         
         data    = []
         for k2id in nlist:
-            print(k2id)
-            dline   = get_propdict(k2id, FeH=FeH, rad=0.01)
-            print(dline)
-            data.append(dline)
+            if np.any(k2id==exid):
+                print(k2id+ " already exist.")
+            else:
+                print(k2id+ " propety being derived.")
+                dline   = get_propdict(k2id, FeH=FeH, rad=0.01)
+                print(dline)
+                #data.append(dline)
+                with open(csvname, 'a', encoding='utf-8',newline='')as csvfile:
+                    writer = csv.DictWriter(csvfile, fieldnames = fieldname)
+                    if flg == 1:
+                        writer.writeheader()
+                    writer.writerow(dline) 
 
-        with open("result/"+fname.split(".")[0]+"_stellarprop.csv", 'w', encoding='utf-8',newline='')as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames = fieldname)
-            writer.writeheader()
-            writer.writerows(data) 
+        #with open(csvname, 'w', encoding='utf-8',newline='')as csvfile:
+        #with open(csvname, 'a', encoding='utf-8',newline='')as csvfile:
+        #    writer = csv.DictWriter(csvfile, fieldnames = fieldname)
+        #    writer.writeheader()
+        #    writer.writerows(data) 
             
             
