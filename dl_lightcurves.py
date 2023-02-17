@@ -62,5 +62,5 @@ if __name__=='__main__':
         else:
             print("EPIC " + k2id +" does not match any TICs.")
     
-    vaclist     = np.array(vaclist)    
-    np.savetxt(vfile, vaclist.reshape(-1,1), fmt="%s")
+        vacar     = np.array(vaclist)    
+        np.savetxt(vfile, vacar.reshape(-1,1), fmt="%s")
