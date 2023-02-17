@@ -309,63 +309,65 @@ if __name__=='__main__':
             if os.path.isfile(fkey+"_k2.dat"): #----------------------
                 print("loading k2 lightcurve.")
                 lck2    = np.loadtxt(fkey+"_k2.dat", dtype='f8').T
-                
-                print("processing K2 data.")
-                lck2_1      = lc_clean(lck2, 100)
-                #ft.plot_freq(lck2_1)
-                fileperi    = "period/"+k2id+"_k2.dat"
-                if os.path.isfile(fileperi):
-                    print("period file for K2 data already exists.")
-                    pres_k2     = np.loadtxt(fileperi, dtype='f8')
-                else:
-                    print("running period analysis for K2 data.")
-                    pres_k2     = period_analysis(lck2_1,k2id + " K2")
-                    if pres_k2 is not np.nan:
-                        np.savetxt(fileperi, pres_k2)
-                if pres_k2.ndim == 2:
-                    pbest   = pres_k2[0,0]
-                elif pres_k2.ndim == 1:
-                    pbest   = pres_k2[0]
-                print("measuring amplitude for K2 data.")
-                lck2_nn,ampk2,erk2  = mes_wrap(lck2_1, pbest, wsigma=3)
-                flg     = 1
+                if len(lck2)!=0:
+                    print("processing K2 data.")
+                    lck2_1      = lc_clean(lck2, 100)
+                    #ft.plot_freq(lck2_1)
+                    fileperi    = "period/"+k2id+"_k2.dat"
+                    if os.path.isfile(fileperi):
+                        print("period file for K2 data already exists.")
+                        pres_k2     = np.loadtxt(fileperi, dtype='f8')
+                    else:
+                        print("running period analysis for K2 data.")
+                        pres_k2     = period_analysis(lck2_1,k2id + " K2")
+                        if pres_k2 is not np.nan:
+                            np.savetxt(fileperi, pres_k2)
+                    if pres_k2.ndim == 2:
+                        pbest   = pres_k2[0,0]
+                    elif pres_k2.ndim == 1:
+                        pbest   = pres_k2[0]
+                    print("measuring amplitude for K2 data.")
+                    lck2_nn,ampk2,erk2  = mes_wrap(lck2_1, pbest, wsigma=3)
+                    flg     = 1
                 
             if os.path.isfile(fkey+"_tess.dat"): #--------------------
                 print("loading tess lightcurve.")
                 lctess  = np.loadtxt(fkey+"_tess.dat", dtype='f8').T
+                if len(lctess)!=0:
 
-                print("processing TESS data.")
-                lctess_1    = lc_clean(lctess, 1e8)
-                #print("running period analysis for TESS data.")
-                #pres_tess   = period_analysis(lctess_1,k2id + " TESS")
-                print("measuring amplitude for TESS data.")
-                lctess_nn,amptess,ertess  = mes_wrap(lctess_1, pbest, wsigma=3)
-                print(amptess, ertess)
+                    print("processing TESS data.")
+                    lctess_1    = lc_clean(lctess, 1e8)
+                    #print("running period analysis for TESS data.")
+                    #pres_tess   = period_analysis(lctess_1,k2id + " TESS")
+                    print("measuring amplitude for TESS data.")
+                    lctess_nn,amptess,ertess  = mes_wrap(lctess_1, pbest, wsigma=3)
+                    print(amptess, ertess)
 
-                flg     += 2
+                    flg     += 2
             else:
                 lctess_nn,amptess,ertess  = np.nan,np.nan,np.nan
 
             if os.path.isfile(fkey+"_tess_qlp.dat"): #-----------------
                 print("loading tess_qlp lightcurve.")
                 lctqlp  = np.loadtxt(fkey+"_tess_qlp.dat", dtype='f8').T
+                if len(lctqlp)!=0:
 
-                print("processing TESS QLP data.")
-                lctqlp_1    = lc_clean(lctqlp, 100)
-                fileperi    = "period/"+k2id+"_tess_qlp.dat"
-                if os.path.isfile(fileperi):
-                    print("period file for TESS QLP data already exists.")
-                    pres_tqlp   = np.loadtxt(fileperi, dtype='f8')
-                else:
-                    print("running period analysis for TESS QLP data.")
-                    pres_tqlp   = period_analysis(lctqlp_1,k2id + " TESS_QLP")
-                    if pres_tqlp is not np.nan:
-                        np.savetxt(fileperi, pres_tqlp)
+                    print("processing TESS QLP data.")
+                    lctqlp_1    = lc_clean(lctqlp, 100)
+                    fileperi    = "period/"+k2id+"_tess_qlp.dat"
+                    if os.path.isfile(fileperi):
+                        print("period file for TESS QLP data already exists.")
+                        pres_tqlp   = np.loadtxt(fileperi, dtype='f8')
+                    else:
+                        print("running period analysis for TESS QLP data.")
+                        pres_tqlp   = period_analysis(lctqlp_1,k2id + " TESS_QLP")
+                        if pres_tqlp is not np.nan:
+                            np.savetxt(fileperi, pres_tqlp)
 
-                print("measuring amplitude for TESS QLP data.")
-                lctqlp_nn,amptqlp,ertqlp  = mes_wrap(lctqlp_1, pbest, wsigma=3)
+                    print("measuring amplitude for TESS QLP data.")
+                    lctqlp_nn,amptqlp,ertqlp  = mes_wrap(lctqlp_1, pbest, wsigma=3)
 
-                flg     += 3
+                    flg     += 3
             else:
                 lctqlp_nn,amptqlp,ertqlp  = np.nan,np.nan,np.nan
 
