@@ -48,9 +48,12 @@ def Teff_joint(magV, magJ, FeH):
 dataK07 = np.loadtxt("MK_mass.lst", comments='#', dtype='f8')
 def mass_Kraus2007(magK, plx):
     MagK    = magK + 5 + 5*np.log10(plx*1e-3)
-
-    y_K     = interp1d(dataK07[:,2], dataK07[:,-1], kind='linear')
-    return  y_K(MagK)
+    
+    if ((MagK < dataK07[0,2])|(dataK07[-1,2]<MagK)):
+        return np.nan
+    else:
+        y_K     = interp1d(dataK07[:,2], dataK07[:,-1], kind='linear')
+        return  y_K(MagK)
 
 def mass_Mann2019(magK, plx, FeH):
     MagK    = magK + 5 + 5*np.log10(plx*1e-3)
