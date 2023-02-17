@@ -14,16 +14,21 @@ from astropy.table import Table
 def k2id_to_cood(k2id):
     filelist    = "./k2ticxmatch_20210831.csv"
     tarlist     = np.loadtxt(filelist, comments='tid', delimiter=",", usecols=[0,1,2,3], dtype='unicode')
-    hittar      = tarlist[(tarlist[:,1]==str(int(k2id)))][0]
-    
-    ra          = hittar[2]
-    dec         = hittar[3]
+    hittar      = tarlist[(tarlist[:,1]==str(int(k2id)))]
+    if len(hittar) == 0:
+        return np.nan, np.nan
+    else:
+        hittar      = hittar[0]
+        ra          = hittar[2]
+        dec         = hittar[3]
 
-    return ra,dec
+        return ra,dec
 
 def get_gaiadr2(k2id, rad=0.1):
     
     ra,dec  = k2id_to_cood(k2id)
+    if ra == np.nan:
+        return np.nan,np.nan,np.nan,np.nan,np.nan
 
     Gaia.MAIN_GAIA_TABLE="gaiadr2.gaia_source"
     Gaia.ROW_LIMIT  = 1
@@ -49,6 +54,8 @@ def get_gaiadr2(k2id, rad=0.1):
 def get_gaia_temperature(k2id, rad=0.1):
     
     ra,dec  = k2id_to_cood(k2id)
+    if ra == np.nan:
+        return np.nan,np.nan
 
     Gaia.MAIN_GAIA_TABLE="gaiadr3.gaia_source"
     #Gaia.MAIN_GAIA_TABLE="gaiaedr3.gaia_source"
@@ -91,6 +98,8 @@ def get_gaia_temperature(k2id, rad=0.1):
 def get_gaia(k2id, rad=0.1):
     
     ra,dec  = k2id_to_cood(k2id)
+    if ra == np.nan:
+        return np.nan,np.nan,np.nan,np.nan,np.nan,np.nan
 
     Gaia.MAIN_GAIA_TABLE="gaiadr3.gaia_source"
     #Gaia.MAIN_GAIA_TABLE="gaiaedr3.gaia_source"
@@ -124,6 +133,8 @@ def get_gaia(k2id, rad=0.1):
 
 def get_2mass(k2id, rad=0.1):
     ra,dec  = k2id_to_cood(k2id)
+    if ra == np.nan:
+        return np.nan,np.nan,np.nan,np.nan,np.nan,np.nan
     coord   = SkyCoord(ra=ra,dec=dec,unit=(u.degree,u.degree),\
         frame='icrs')
     table = Irsa.query_region(coord, catalog="fp_psc", spatial="Cone",radius=rad*u.deg)
@@ -143,6 +154,8 @@ def get_2mass(k2id, rad=0.1):
 
 def get_tic(k2id, rad=0.1):
     ra,dec  = k2id_to_cood(k2id)
+    if ra == np.nan:
+        return np.nan
     coord   = SkyCoord(ra=ra,dec=dec,unit=(u.degree,u.degree),\
         frame='icrs')
     result = Vizier.query_region(coord, radius=rad*u.deg,
@@ -183,6 +196,8 @@ def get_tycho(k2id, rad=0.1):
 
 def get_lamost(k2id, rad=0.1):
     ra,dec  = k2id_to_cood(k2id)
+    if ra == np.nan:
+        return np.nan
     coord   = SkyCoord(ra=ra,dec=dec,unit=(u.degree,u.degree),\
         frame='icrs')
     result = Vizier.query_region(coord, radius=rad*u.deg,
