@@ -167,14 +167,15 @@ def mes_wrap(data, pbest, wsigma=3):
     #plt.scatter(data[0], data[1], s=1)
     #print(roop_mes(data_nn, pbest))
     amp,er  = roop_mes(data_nn, pbest)
+    datawn  = data[1] - data_nn[1]
+    _,b,c   = mes_amplitude(datawn)
+    wn      = np.abs(b-c)/2.
     if amp < wn:
         mflg    = 1
     else:
         mflg    = 0
     #plt.scatter(data_nn[0], data_nn[1], s=1)
     #plt.show()
-    #data2       = data[1] - data_nn[1]
-    #_,b,c       = mes_amplitude(data2)
     #er          = np.abs(b - c)/2.
     #_,b,c       = mes_amplitude(data_nn[1])
     #amp         = np.abs(b - c)/2.
@@ -374,7 +375,7 @@ if __name__=='__main__':
                     print("measuring amplitude for TESS QLP data.")
                     lctqlp_nn,amptqlp,ertqlp,mflg = mes_wrap(lctqlp_1, pbest, wsigma=3)
 
-                    mftot   += 3*mflg
+                    mftot   += 4*mflg
                     flg     += 3
             else:
                 lctqlp_nn,amptqlp,ertqlp = np.nan,np.nan,np.nan
