@@ -123,7 +123,7 @@ def rm_whitenoise(data, nsigma):
     #new_data[0] = new_data[0] + data[0,0]
     new_data[0] = data[0]
 
-    return new_data
+    return new_data, wh_level
 
 
 def whitenoise_sigma(data, nsigma):

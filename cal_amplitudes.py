@@ -162,11 +162,15 @@ def roop_mes(data_nn, pbest):
         return np.mean(amp_ar), np.std(amp_ar)
 
 def mes_wrap(data, pbest, wsigma=3):
-    data_nn     = ft.rm_whitenoise(data,wsigma)
+    data_nn,wn  = ft.rm_whitenoise(data,wsigma)
 
     #plt.scatter(data[0], data[1], s=1)
     #print(roop_mes(data_nn, pbest))
     amp,er  = roop_mes(data_nn, pbest)
+    if amp < wn:
+        mflg    = 1
+    else:
+        mflg    = 0
     #plt.scatter(data_nn[0], data_nn[1], s=1)
     #plt.show()
     #data2       = data[1] - data_nn[1]
@@ -175,7 +179,7 @@ def mes_wrap(data, pbest, wsigma=3):
     #_,b,c       = mes_amplitude(data_nn[1])
     #amp         = np.abs(b - c)/2.
 
-    return data_nn,amp, er
+    return data_nn,amp, er, mflg
 
 def peri_error_single(p,pow,p_best):
     i_p     = int(np.where(p==p_best)[0])
@@ -299,13 +303,14 @@ if __name__=='__main__':
     epiclist    = dlist.T
 
     i = 0
-    out_array   = [["#ID", "amp_k2", "er_k2", "amp_tess", "er_tess", "amp_qlp", "er_qlp"]]
+    out_array   = [["#ID", "amp_k2", "er_k2", "amp_tess", "er_tess", "amp_qlp", "er_qlp", "mflg"]]
     for k2id in epiclist:
         tid     = gl.EPIC_to_TIC(k2id)
         if tid != -1:
             print("EPIC "+k2id, tid)
             fkey    = "lightcurves/"+k2id
             flg     = 0
+            mftot   = 0
             if os.path.isfile(fkey+"_k2.dat"): #----------------------
                 print("loading k2 lightcurve.")
                 lck2    = np.loadtxt(fkey+"_k2.dat", dtype='f8').T
@@ -327,7 +332,8 @@ if __name__=='__main__':
                     elif pres_k2.ndim == 1:
                         pbest   = pres_k2[0]
                     print("measuring amplitude for K2 data.")
-                    lck2_nn,ampk2,erk2  = mes_wrap(lck2_1, pbest, wsigma=3)
+                    lck2_nn,ampk2,erk2,mflg = mes_wrap(lck2_1, pbest, wsigma=3)
+                    mftot   += mflg
                     flg     = 1
                 
             if os.path.isfile(fkey+"_tess.dat"): #--------------------
@@ -340,12 +346,13 @@ if __name__=='__main__':
                     #print("running period analysis for TESS data.")
                     #pres_tess   = period_analysis(lctess_1,k2id + " TESS")
                     print("measuring amplitude for TESS data.")
-                    lctess_nn,amptess,ertess  = mes_wrap(lctess_1, pbest, wsigma=3)
+                    lctess_nn,amptess,ertess,mflg = mes_wrap(lctess_1, pbest, wsigma=3)
                     print(amptess, ertess)
 
+                    mftot   += 2*mflg
                     flg     += 2
             else:
-                lctess_nn,amptess,ertess  = np.nan,np.nan,np.nan
+                lctess_nn,amptess,ertess = np.nan,np.nan,np.nan
 
             if os.path.isfile(fkey+"_tess_qlp.dat"): #-----------------
                 print("loading tess_qlp lightcurve.")
@@ -365,14 +372,15 @@ if __name__=='__main__':
                             np.savetxt(fileperi, pres_tqlp)
 
                     print("measuring amplitude for TESS QLP data.")
-                    lctqlp_nn,amptqlp,ertqlp  = mes_wrap(lctqlp_1, pbest, wsigma=3)
+                    lctqlp_nn,amptqlp,ertqlp,mflg = mes_wrap(lctqlp_1, pbest, wsigma=3)
 
+                    mftot   += 3*mflg
                     flg     += 3
             else:
-                lctqlp_nn,amptqlp,ertqlp  = np.nan,np.nan,np.nan
+                lctqlp_nn,amptqlp,ertqlp = np.nan,np.nan,np.nan
 
             if flg>=3:
-                output      = np.array([k2id, ampk2, erk2, amptess, ertess, amptqlp, ertqlp], dtype='unicode')
+                output      = np.array([k2id, ampk2, erk2, amptess, ertess, amptqlp, ertqlp, mftot], dtype='unicode')
                 out_array.append(output)
 
                 #ft.plot_freq(lck2_1)
@@ -400,4 +408,5 @@ if __name__=='__main__':
             #    #plt.ylim((0,0.02))
             #    #plt.show()
             #    exit()
+    print("fin.")
 
