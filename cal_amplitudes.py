@@ -167,9 +167,11 @@ def mes_wrap(data, pbest, wsigma=3):
     #plt.scatter(data[0], data[1], s=1)
     #print(roop_mes(data_nn, pbest))
     amp,er  = roop_mes(data_nn, pbest)
-    datawn  = data[1] - data_nn[1]
-    _,b,c   = mes_amplitude(datawn)
-    wn      = np.abs(b-c)/2.
+    datawn  = np.array((data[0], data[1] - data_nn[1]))
+    #_,b,c   = mes_amplitude(datawn)
+    #wn      = np.abs(b-c)/2.
+    wn,_    = roop_mes(datawn, pbest)
+
     #if amp < wn:
     #    mflg    = 1
     #else:
