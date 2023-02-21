@@ -27,18 +27,23 @@ def remove_nan(data):
     data    = data[:,(data[1]>0)]
     return data
 
-def dl_lightcurve(sr_object):
+def dl_lightcurve(sr_object, fpdc=True):
     lcf     = sr_object.download()
     t_ofs   = lcf.meta['BJDREFI']
     time    = lcf.time
     time    = obj_to_f(time)
-    flux,er     = flux_relative(lcf.flux, lcf.flux_err)
+    if fpdc:
+        flux_rw = lcf.flux
+        er_rw   = lcf.flux_err
+    else:
+        flux_rw = lcf.sap_flux
+        er_rw   = lcf.sap_flux_err
 
-    data    = np.array((time+t_ofs,flux,er), dtype='f8')
+    flux,er     = flux_relative(flux_rw, er_rw)
+    data    = np.array((time+t_ofs, flux, er, flux_rw), dtype='f8')
     return data
 
-def merge_lightcurves(search_result, author, texp):
-    #print(search_result)
+def merge_lightcurves(search_result, author, texp, fpdc=True):
     TESS_sr1  = search_result[(search_result.author==author)]
     #print(TESS_sr1)
     if len(TESS_sr1) != 0:
@@ -49,16 +54,18 @@ def merge_lightcurves(search_result, author, texp):
             return [0]
     else:
         return [0]
-
+    
     time_tot  = []
     flux_tot  = []
     eror_tot  = []
+    fraw_tot  = []
     for sr  in TESS_search_result:
-        data    = dl_lightcurve(sr)
+        data    = dl_lightcurve(sr, fpdc=fpdc)
         time_tot.extend(data[0])
         flux_tot.extend(data[1])
         eror_tot.extend(data[2])
-    data    = np.vstack((time_tot,flux_tot,eror_tot))
+        fraw_tot.extend(data[3])
+    data    = np.vstack((time_tot, flux_tot, eror_tot, fraw_tot))
     data    = remove_nan(data)
     return data
 
@@ -72,7 +79,7 @@ def EPIC_to_TIC(EPICid):
     else:
         return -1
 
-def tesslcTESSSPOC_byepic(epicid):
+def tesslcTESSSPOC_byepic(epicid, fpdc=True):
     TIC     = EPIC_to_TIC(epicid)
     search_result = lk.search_lightcurve(TIC)
     if np.any(search_result.author=='SPOC'):
@@ -81,11 +88,11 @@ def tesslcTESSSPOC_byepic(epicid):
         tarname = np.unique(search_result.target_name[(search_result.author=='TESS-SPOC')])[0]
         
     search_result = search_result[(search_result.target_name==tarname)]
-    data    = merge_lightcurves(search_result, 'TESS-SPOC', '600.')
+    data    = merge_lightcurves(search_result, 'TESS-SPOC', '600.', fpdc=fpdc)
 
     return data
 
-def tesslcQLP_byepic(epicid):
+def tesslcQLP_byepic(epicid, fpdc=True):
     TIC     = EPIC_to_TIC(epicid)
     #print(TIC)
     search_result = lk.search_lightcurve(TIC)
@@ -99,32 +106,39 @@ def tesslcQLP_byepic(epicid):
         
     #print(tarname)
     search_result = search_result[(search_result.target_name==tarname)]
-    data    = merge_lightcurves(search_result, 'QLP', '600.')
+    data    = merge_lightcurves(search_result, 'QLP', '600.', fpdc=fpdc)
 
     return data
 
-def tesslc_byepic(epicid):
+def tesslc_byepic(epicid, fpdc=True):
     TIC     = EPIC_to_TIC(epicid)
     search_result = lk.search_lightcurve(TIC)
     if np.all(search_result.author!='SPOC'):
         return [0]
     
-    data    = merge_lightcurves(search_result, 'SPOC', '120')
+    data    = merge_lightcurves(search_result, 'SPOC', '120', fpdc=fpdc)
 
     return data
 
-def k2lc_byepic(epicid):
+def k2lc_byepic(epicid, author='K2SFF', fpdc=True):
     search_result = lk.search_lightcurve("EPIC "+epicid)
-    data    = merge_lightcurves(search_result, 'K2SFF','1800')
+    data    = merge_lightcurves(search_result, author,'1800', fpdc=fpdc)
     return data
 
 if __name__=='__main__':
     epicid  = sys.argv[1]
-    #data    = k2lc_byepic(epicid)
-    data    = tesslc_byepic(epicid)
+    #data   = k2lc_byepic(epicid, author='K2', fpdc=True)
+    #data2  = k2lc_byepic(epicid, author='K2', fpdc=False)
+    #data3  = k2lc_byepic(epicid, author='K2SFF')
+    data2   = tesslcQLP_byepic(epicid)
+    data    = tesslc_byepic(epicid, fpdc=False)
+    data3   = tesslc_byepic(epicid)
 
-    #data    = tesslc_byepic(epicid)
-    plt.errorbar(data[0], data[1], yerr=data[2], fmt='.', ms=1, color='gray')
+    #plt.scatter(data[0], data[1], s=1, color='black', zorder=3)
+    #plt.scatter(data[0], data[1], s=1, color='black', zorder=3)
+    #plt.scatter(data2[0], data2[1], s=1, color='red', zorder=4)
+    plt.scatter(data3[0], data3[1], s=1, color='pink', zorder=5)
+    print(data3[1])
     plt.show()
 
 

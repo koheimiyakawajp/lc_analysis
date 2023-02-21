@@ -23,7 +23,7 @@ def dlwrap(fkey, mkey,k2id, vaclist):
         if mkey=="k2":
             lc    = gl.k2lc_byepic(k2id)
         elif mkey=="tess":
-            lc    = gl.tesslc_byepic(k2id)
+            lc    = gl.tesslc_byepic(k2id, fpdc=False)
         elif mkey=="tess_qlp":
             lc    = gl.tesslcQLP_byepic(k2id)
         print("done.")

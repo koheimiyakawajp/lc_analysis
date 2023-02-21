@@ -22,15 +22,34 @@ def ylimits(ydata):
 
     return med+4*sig1, med+4*sig2
 
+def axplot_wn(ax, toff, data, data_nn):
+    res     = data[1] - data_nn[1]
+    dtot    = int(len(res))
+    ax.scatter(data[0]-toff ,res, s=0.5,c='dimgrey')
+    std_th  = np.std(res)
+    med     = np.median(res)
+    res_srt = np.sort(res)
+    std_ms0 = res_srt[-int(0.1585*dtot)]
+    std_ms1 = res_srt[int(0.1585*dtot)]
+    ax.axhline(med - std_th, ls=':', c='blue', lw=0.5)
+    ax.axhline(med + std_th, ls=':', c='blue', lw=0.5)
+    ax.axhline(std_ms1, ls=':', c='red', lw=0.5)
+    ax.axhline(std_ms0, ls=':', c='red', lw=0.5)
+
+    ax.set_ylim((med - std_th*4, med + std_th*4))
+
+
 def plotfunc3(lck2 ,lck2_1, lck2_nn,  lctess, lctess_1, lctess_nn, lctqlp, lctqlp_1, lctqlp_nn, k2id, tid):
     toff        = int(lck2[0,0])
-    fig     = plt.figure(figsize=(5,6))
+    fig     = plt.figure(figsize=(10,6))
     #plt.rcParams["font.family"] = "cmss10"   # 使用するフォント
     plt.rcParams["font.size"] = 10  
-    ax1     = fig.add_subplot(3,1,1)
+    ax1     = fig.add_subplot(3,2,1)
     ax1.scatter(lck2[0]-toff,lck2[1],s=0.7,c="black")
     ax1.scatter(lck2_1[0]-toff,lck2_1[1]+1,s=0.5,c="dimgrey")
     ax1.scatter(lck2_1[0]-toff,lck2_nn[1]+1,s=0.3,c="orangered")
+    ax1r    = fig.add_subplot(3,2,2)
+    axplot_wn(ax1r, toff, lck2_1, lck2_nn)
 
     k2m,k2u,k2l = mes_amplitude(lck2_nn[1])
     ax1.axhline(k2m+1, c='black',ls='--',lw=0.5)
@@ -38,10 +57,12 @@ def plotfunc3(lck2 ,lck2_1, lck2_nn,  lctess, lctess_1, lctess_nn, lctqlp, lctql
     ax1.axhline(k2l+1, c='black',ls=':',lw=0.5)
     ax1.set_ylim((ylimits(lck2[1])))
 
-    ax2     = fig.add_subplot(3,1,2)
+    ax2     = fig.add_subplot(3,2,3)
     ax2.scatter(lctess[0]-toff,lctess[1],s=0.7,c="black")
     ax2.scatter(lctess_1[0]-toff,lctess_1[1]+1,s=0.5,c="dimgrey")
     ax2.scatter(lctess_1[0]-toff,lctess_nn[1]+1,s=0.3,c="orangered")
+    ax2r    = fig.add_subplot(3,2,4)
+    axplot_wn(ax2r, toff, lctess_1, lctess_nn)
 
     tsm,tsu,tsl = mes_amplitude(lctess_nn[1])
     ax2.axhline(tsm+1, c='black',ls='--',lw=0.5)
@@ -49,10 +70,12 @@ def plotfunc3(lck2 ,lck2_1, lck2_nn,  lctess, lctess_1, lctess_nn, lctqlp, lctql
     ax2.axhline(tsl+1, c='black',ls=':',lw=0.5)
     ax2.set_ylim((ylimits(lctess[1])))
 
-    ax3     = fig.add_subplot(3,1,3)
+    ax3     = fig.add_subplot(3,2,5)
     ax3.scatter(lctqlp[0]-toff,  lctqlp[1],s=0.7,c="black")
     ax3.scatter(lctqlp_1[0]-toff,lctqlp_1[1]+1,s=0.5,c="dimgrey")
     ax3.scatter(lctqlp_1[0]-toff,lctqlp_nn[1]+1,s=0.3,c="orangered")
+    ax3r    = fig.add_subplot(3,2,6)
+    axplot_wn(ax3r, toff, lctqlp_1, lctqlp_nn)
 
     tsm,tsu,tsl = mes_amplitude(lctqlp_nn[1])
     ax3.axhline(tsm+1, c='black',ls='--',lw=0.5)
@@ -65,10 +88,10 @@ def plotfunc3(lck2 ,lck2_1, lck2_nn,  lctess, lctess_1, lctess_nn, lctqlp, lctql
     fig.supxlabel('time - '+str(toff)+" [d]");fig.supylabel('relative flux')
     fig.tight_layout()
 
-    plt.savefig("figure/"+k2id+".png", dpi=200)
-    plt.clf();plt.close()
-    #plt.show()
-    #exit()
+    #plt.savefig("figure/"+k2id+".png", dpi=200)
+    #plt.clf();plt.close()
+    plt.show()
+    exit()
 
 
 def plotfunc2(lck2 ,lck2_1, lck2_nn, lctess, lctess_1, lctess_nn, k2id, tid):
@@ -102,8 +125,8 @@ def plotfunc2(lck2 ,lck2_1, lck2_nn, lctess, lctess_1, lctess_nn, k2id, tid):
     fig.supxlabel('time - '+str(toff)+" [d]");fig.supylabel('relative flux')
     fig.tight_layout()
 
-    #plt.show()
-    #exit()
+    plt.show()
+    exit()
     plt.savefig("figure/"+k2id+".png", dpi=200)
     plt.clf();plt.close()
 
