@@ -44,12 +44,15 @@ def get_gaiadr2(k2id, rad=0.1):
     #    print(i)
     #exit()
     
-    plx     = r['parallax'][0]
-    plx_er  = r['parallax_error'][0]
-    bprp    = r['bp_rp'][0]
-    gof_al  = r['astrometric_gof_al'][0]
-    d       = r['astrometric_excess_noise_sig'][0]
-    return plx,plx_er,bprp,gof_al,d
+    try:
+        plx     = r['parallax'][0]
+        plx_er  = r['parallax_error'][0]
+        bprp    = r['bp_rp'][0]
+        gof_al  = r['astrometric_gof_al'][0]
+        d       = r['astrometric_excess_noise_sig'][0]
+        return plx,plx_er,bprp,gof_al,d
+    except:
+        return np.nan,np.nan,np.nan,np.nan,np.nan
 
 
 def get_gaia_temperature(k2id, rad=0.1):
