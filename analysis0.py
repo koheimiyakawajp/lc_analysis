@@ -92,7 +92,7 @@ if __name__=='__main__':
         #exit()
         fig     = plt.figure(figsize=(8,3.5))
 
-        plt.rcParams["font.family"] = "Arial"
+        #plt.rcParams["font.family"] = "Arial"
 
         ax1     = fig.add_subplot(1,2,1)
         rmids   = plot_vj_MK(prpdata,ax1)
