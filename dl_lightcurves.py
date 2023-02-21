@@ -20,8 +20,10 @@ def dlwrap(fkey, mkey,k2id, vaclist):
         return 2, vaclist
     else:
         print("downloading "+mkey + " light curve.")
-        if mkey=="k2":
+        if mkey=="k2sff":
             lc    = gl.k2lc_byepic(k2id)
+        if mkey=="k2sap":
+            lc    =gl.k2lc_byepic(k2id, author='K2',fpdc=False)
         elif mkey=="tess":
             lc    = gl.tesslc_byepic(k2id, fpdc=False)
         elif mkey=="tess_qlp":
@@ -38,14 +40,13 @@ def dlwrap(fkey, mkey,k2id, vaclist):
 
 if __name__=='__main__':
     fname   = sys.argv[1]
-    dlist   = np.loadtxt(fname, dtype='unicode',comments='#')
-    epiclist    = dlist.T
+    dlist   = np.loadtxt(fname, dtype='unicode',comments='#',delimiter=',')
+    epiclist    = dlist[1:,0].T
     
     if os.path.isfile(vfile):
         vaclist     = np.loadtxt(vfile, dtype='unicode').T
     else:
         vaclist     = []
-
 
     i = 0
     out_array   = []
@@ -54,8 +55,9 @@ if __name__=='__main__':
         if tid != -1:
             print("EPIC "+k2id, tid)
             fkey    = "lightcurves/"+k2id
-            flg,vaclist    = dlwrap(fkey, "k2", k2id, vaclist) 
+            flg,vaclist    = dlwrap(fkey, "k2sff", k2id, vaclist) 
             if flg != 1:
+                _, vaclist    = dlwrap(fkey, "k2sap", k2id, vaclist) 
                 _, vaclist    = dlwrap(fkey, "tess", k2id, vaclist) 
                 _, vaclist    = dlwrap(fkey, "tess_qlp", k2id, vaclist) 
             i+=1
