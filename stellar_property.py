@@ -36,14 +36,17 @@ def Teff_mann2015(magV, magJ, FeH):
     return res*3500, 42
 
 def Teff_joint(magV, magJ, FeH):
-    if (1.2 < magV - magJ) & (magV - magJ < 3):
-        teff,er = Teff_boyajian2012(magV, magJ, FeH)
-    elif 3 < magV - magJ:
-        teff,er = Teff_mann2015(magV, magJ, FeH)
-    else:
-        return np.nan, np.nan
+    try:
+        if (1.2 < magV - magJ) & (magV - magJ < 3):
+            teff,er = Teff_boyajian2012(magV, magJ, FeH)
+        elif (3 < magV - magJ):
+            teff,er = Teff_mann2015(magV, magJ, FeH)
+        else:
+            return np.nan, np.nan
 
-    return teff, er
+        return teff, er
+    except:
+        return np.nan, np.nan
 
 dataK07 = np.loadtxt("MK_mass.lst", comments='#', dtype='f8')
 def mass_Kraus2007(magK, plx):
@@ -75,12 +78,16 @@ def mass_Mann2019(magK, plx, FeH):
     return res
 
 def mass_joint(magK, plx, FeH):
-    mass_M  = mass_Mann2019(magK,plx,FeH)
-    if mass_M > 0.7:
-        mass_K  = mass_Kraus2007(magK,plx)
-        return mass_K
-    else:
-        return mass_M
+    try:
+        mass_M  = mass_Mann2019(magK,plx,FeH)
+        if mass_M > 0.7:
+            mass_K  = mass_Kraus2007(magK,plx)
+            return mass_K
+        else:
+            return mass_M
+    except:
+        return np.nan
+
 def rd(val, ndig=0):
     #print(type(val))
     if (type(val) is float) | (type(val) is np.float64) | (type(val) is np.float32):
@@ -139,6 +146,7 @@ if __name__=='__main__':
         #teff,er = bc.get_gaia_temperature(k2id)
         #print(teff, er)
         #exit()
+        bc.get_tic(k2id)
         propdict    = get_propdict(k2id, FeH=0.15)
         print(propdict)
 
