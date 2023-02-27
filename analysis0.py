@@ -55,19 +55,26 @@ def plot_vj_MK(prpdata, ax=np.nan):
     con2    = con2[np.argsort(vj)]
     #plt.scatter(mksar[0],resid)
     #plt.show()
+    contot  = (((resid<1)&con1)&con0)
+    contot_not  = np.array([not x for x in contot])
 
     ms      = 3
     if ax is not np.nan:
-        mkok    = copy(mksar[:,((resid< 2)|con1)&(con0)])
-        mkng    = copy(mksar[:,((resid>=2)|con2)&(con0)])
+        #mkok    = copy(mksar[:,((resid< 1)|con1)&(con0)])
+        #mkng    = copy(mksar[:,((resid>=1)|con2)&(con0)])
+        #mkok    = copy(mksar[:,((resid< 1)&con1)&(con0)])
+        #mkng    = copy(mksar[:,((resid>=1)|con2)&(con0)])
+        mkok    = copy(mksar[:,contot])
+        mkng    = copy(mksar[:,contot_not])
         ax.errorbar(mkok[0], mkok[1], xerr=mkok[2], yerr=mkok[3], c='orange', fmt='o', capsize=3,\
              ecolor='gray', markeredgewidth=0.5,markeredgecolor='gray', markersize=ms, elinewidth=0.5)
         ax.errorbar(mkng[0], mkng[1], xerr=mkng[2], yerr=mkng[3], c='black',  fmt='o', capsize=3,\
              ecolor='gray', markeredgewidth=0.5,markeredgecolor='gray', markersize=ms, elinewidth=0.5)
         ax.set_xlabel("$V~-~J$")
+        ax.set_xlim((0.5,6)); ax.set_ylim((0.1,8.9))
         ax.set_ylabel("M$_K$")
     
-    flg     = np.where(((resid >=2)|(con2)|(vj<1.2)|(7<vj)), 1, 0)
+    flg     = np.where(((resid >=1)|(con2)|(vj<1.2)|(7<vj)), 1, 0)
     flgsort = flg[np.argsort(mksar[-1])]
     return  np.array(np.array(k2id[(flgsort==1)],dtype='i8'), dtype='unicode')
 
@@ -77,6 +84,8 @@ def plot_teff_mass(ax, tf, ms, tf_er, ms_er):
         elinewidth=0.5)#,c=rw,s=30,cmap=plt.cm.jet,ec='gray',vmin=1,vmax=1.5)
     ax.set_xlabel("Effective Temperature [K]")
     ax.set_ylabel("Stellar Mass [M$_{\odot}$]")
+    ax.set_xlim((2800,5800))
+    ax.set_ylim((0.1,1.3))
 
 def cal_err_wari(a,b,ae,be):
     er  = ((ae/b)**2+(a*be/b**2)**2)**0.5
