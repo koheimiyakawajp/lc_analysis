@@ -100,9 +100,9 @@ def rd(val, ndig=0):
 def vmag_from_csv(k2id):
     tic     = gl.EPIC_to_TIC(k2id)
     tic_vmag    = np.loadtxt("tic_Vmag.csv", delimiter=',', dtype='unicode')
-    itic    = int(tic[3:])
-    hitval  = tic_vmag[(np.array(tic_vmag[:,0],dtype='f8')==itic)]
     try:
+        itic    = int(tic[3:])
+        hitval  = tic_vmag[(np.array(tic_vmag[:,0],dtype='f8')==itic)]
         vmag    = float(hitval[0,1])
         vmag_er = float(hitval[0,2])
         return vmag, vmag_er 
