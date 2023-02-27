@@ -4,6 +4,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 from matplotlib import pyplot as plt
 import bin.info_from_catalogue as bc
+import bin.getlc as gl
 import sys
 
 
@@ -96,6 +97,19 @@ def rd(val, ndig=0):
     else:
         return val
     
+def vmag_from_csv(k2id):
+    tic     = gl.EPIC_to_TIC(k2id)
+    tic_vmag    = np.loadtxt("tic_Vmag.csv", delimiter=',', dtype='unicode')
+    itic    = int(tic[3:])
+    hitval  = tic_vmag[(np.array(tic_vmag[:,0],dtype='f8')==itic)]
+    try:
+        vmag    = float(hitval[0,1])
+        vmag_er = float(hitval[0,2])
+        return vmag, vmag_er 
+    except:
+        return np.nan, np.nan
+
+
 def get_propdict(k2id, FeH=0.0, rad=0.01):
 
     plx,plx_er,bprp,ruwe,gof_al,d       = bc.get_gaia(k2id,rad)
@@ -103,7 +117,8 @@ def get_propdict(k2id, FeH=0.0, rad=0.01):
     jmag,jer,hmag,her,kmag,ker  = bc.get_2mass(k2id,rad)
     vmag    = bc.get_tycho(k2id, rad)
     if vmag is np.nan:
-        vmag    = bc.get_tic(k2id, rad)
+        #vmag    = bc.get_tic(k2id, rad)
+        vmag,_  = vmag_from_csv(k2id)
     
     mass        = mass_joint(kmag,plx, FeH)
     mass        = float(mass)
@@ -153,6 +168,7 @@ if __name__=='__main__':
     elif len(sys.argv)==3:
         fname   = sys.argv[1]
         csvname = "result/"+fname.split(".")[0]+"_stellarprop.csv"
+        flg     = 0
         if os.path.isfile(csvname):
             csvdata = np.loadtxt(csvname, dtype='unicode', delimiter=',').T
             exid    = csvdata[0]

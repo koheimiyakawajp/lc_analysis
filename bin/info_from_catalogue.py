@@ -99,7 +99,7 @@ def get_gaia_temperature(k2id, rad=0.1):
     
     return teff, (er2 - er1)/2.
 
-def get_gaia(k2id, rad=0.1):
+def get_gaia(k2id, rad=0.01):
     
     ra,dec  = k2id_to_cood(k2id)
     if math.isnan(ra):
@@ -160,11 +160,20 @@ def get_tic(k2id, rad=0.1):
     ra,dec  = k2id_to_cood(k2id)
     if math.isnan(ra):
         return np.nan
+    
+    rad     = 0.1
+    print(ra,dec)
     coord   = SkyCoord(ra=ra,dec=dec,unit=(u.degree,u.degree),\
         frame='icrs')
-    result = Vizier.query_region(coord, radius=rad*u.deg,
+    result = Vizier.query_region(coord, radius=rad*u.deg,\
                                  catalog='J/AJ/156/102/table9') #TIC
+                                 #catalog='IV/38/tic') #TIC
+                                 #catalog='IV/34/epic') #TIC
+                                 #catalog='IV/39/tic82') #TIC
+
                                  #catalog='I/322A/out')#UCAC4
+    #print(result)
+    #exit()
     #print(result[0])
     #for  i in result[0].columns:
     #    print(i)
