@@ -43,7 +43,7 @@ def plot_vj_MK(prpdata, ax=np.nan):
     mksar   = np.array((np.sort(vj), MK[(np.argsort(vj))], jer[(np.argsort(vj))],\
          MKe[(np.argsort(vj))],np.arange(len(vj))[np.argsort(vj)]))
     mkmed   = medfilt(mksar[1],kernel_size=11)
-    resid   = mksar[1] - mkmed
+    resid   = np.abs(mksar[1] - mkmed)
 
     con0    = ((1.2<=vj)&(vj<=7))
     con1    = ((rw< 1.4)&((ga< 20)|(d< 5)))
@@ -53,10 +53,12 @@ def plot_vj_MK(prpdata, ax=np.nan):
     #con2    = ((rw>=1.4)|((ga>=20)&(d>=5)))
     #con2    = np.array(map(lambda x: not x, con1))
     con2    = con2[np.argsort(vj)]
+    #plt.scatter(mksar[0],resid)
+    #plt.show()
 
     ms      = 3
     if ax is not np.nan:
-        mkok    = copy(mksar[:,((resid<2)|con1)&(con0)])
+        mkok    = copy(mksar[:,((resid< 2)|con1)&(con0)])
         mkng    = copy(mksar[:,((resid>=2)|con2)&(con0)])
         ax.errorbar(mkok[0], mkok[1], xerr=mkok[2], yerr=mkok[3], c='orange', fmt='o', capsize=3,\
              ecolor='gray', markeredgewidth=0.5,markeredgecolor='gray', markersize=ms, elinewidth=0.5)
@@ -120,4 +122,5 @@ if __name__=='__main__':
         plot_teff_mass(ax2, tf, ms, tf_er, ms_er)
         plt.tight_layout()
         #plt.show()
+        #exit()
         plt.savefig(prpfile.split(".cs")[0]+".png", dpi=200)
