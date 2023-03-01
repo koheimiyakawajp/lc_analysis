@@ -71,7 +71,7 @@ def plot_vj_MK(prpdata, ax=np.nan):
         ax.errorbar(mkng[0], mkng[1], xerr=mkng[2], yerr=mkng[3], c='black',  fmt='o', capsize=3,\
              ecolor='gray', markeredgewidth=0.5,markeredgecolor='gray', markersize=ms, elinewidth=0.5)
         ax.set_xlabel("$V~-~J$")
-        ax.set_xlim((0.5,6)); ax.set_ylim((0.1,8.9))
+        ax.set_xlim((0.2,6.5)); ax.set_ylim((0.1,9.3))
         ax.set_ylabel("M$_K$")
     
     flg     = np.where(((resid >=1)|(con2)|(vj<1.2)|(7<vj)), 1, 0)
@@ -84,8 +84,8 @@ def plot_teff_mass(ax, tf, ms, tf_er, ms_er):
         elinewidth=0.5)#,c=rw,s=30,cmap=plt.cm.jet,ec='gray',vmin=1,vmax=1.5)
     ax.set_xlabel("Effective Temperature [K]")
     ax.set_ylabel("Stellar Mass [M$_{\odot}$]")
-    ax.set_xlim((2800,5800))
-    ax.set_ylim((0.1,1.3))
+    ax.set_xlim((2500,5800))
+    ax.set_ylim((0.1,1.5))
 
 def cal_err_wari(a,b,ae,be):
     er  = ((ae/b)**2+(a*be/b**2)**2)**0.5
