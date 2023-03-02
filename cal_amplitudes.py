@@ -67,6 +67,7 @@ def plotfunc(lc ,lc_1, lc_nn, k2id, tid):
     fig.supxlabel('time - '+str(toff)+" [d]");fig.supylabel('relative flux')
     #plt.show()
     plt.savefig(k2id+"lightcurve.png", dpi=200)
+    plt.clf();plt.close()
 
 
 
