@@ -279,6 +279,26 @@ def period_analysis(data, title='--', k2input=0):
     plt.clf();plt.close()
 
     return presult2
+
+def lcbin(data):
+    t   = copy(data[0])
+    f   = copy(data[1])
+    sp  = 0.02
+    ilen    = int((t[-1] - t[0])/sp)
+    print(ilen)
+    mean_ar = []
+    for i in range(ilen):
+        r1  = i*sp + t[0]
+        r2  = (i+1)*sp + t[0]
+        con = ((r1<=t)&(t<r2))
+        #print(len(f[con]))
+        if len(t[con]) >= 3:
+            f_mean  = np.mean(f[con])
+            t_mean  = np.mean(t[con])
+            mean_ar.append((t_mean, f_mean))
+    
+    return np.vstack(mean_ar).T
+
         
 if __name__=='__main__':
     fname   = sys.argv[1]
@@ -349,9 +369,8 @@ if __name__=='__main__':
             else:
                 lck2sp,lck2sp_1,lck2sp_nn,ampk2sp,erk2sp,wnk2sp,shotk2 = np.nan,np.nan,np.nan,np.nan,np.nan,np.nan,np.nan
 
-
+            pbest_tqlp  = np.nan
             if os.path.isfile(fkey+"_tess_qlp.dat"): #--------------- TESS QLP
-                pbest_tqlp  = np.nan
                 print("loading tess_qlp lightcurve.")
                 lctqlp  = np.loadtxt(fkey+"_tess_qlp.dat", dtype='f8').T
                 if len(lctqlp)!=0:
@@ -392,6 +411,21 @@ if __name__=='__main__':
                     lctess_1    = lc_clean(lctess, 1e8)
                     #print("running period analysis for TESS data.")
                     #pres_tess   = period_analysis(lctess_1,k2id + " TESS")
+                    if pbest_tqlp is np.nan:
+                        lctess_bin  = lcbin(lctess_1)
+                        fileperi    = "period/"+k2id+"_tess_sap.dat"
+                        if os.path.isfile(fileperi):
+                            print("period file for TESS SAP data already exists.")
+                            pres_tqlp   = np.loadtxt(fileperi, dtype='f8')
+                        else:
+                            print("running period analysis for TESS SAP data.")
+                            pres_tqlp   = period_analysis(lctess_bin,k2id + " TESS_SAP", k2input=pbest)
+                            if pres_tqlp is not np.nan:
+                                np.savetxt(fileperi, pres_tqlp)
+                        if pres_tqlp.ndim == 2:
+                            pbest_tqlp  = pres_tqlp[0,0]
+                        elif pres_tqlp.ndim == 1:
+                            pbest_tqlp  = pres_tqlp[0]
                     print("measuring amplitude for TESS data.")
                     lctess_nn,amptess,ertess,wntess = mes_wrap(lctess_1, pbest_tqlp, wsigma=3)
                     print(amptess, ertess)
