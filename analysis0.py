@@ -58,7 +58,7 @@ def plot_vj_MK(prpdata, ax=np.nan):
     contot  = (((resid<1)&con1)&con0)
     contot_not  = np.array([not x for x in contot])
 
-    ms      = 3
+    ms      = 4
     if ax is not np.nan:
         #mkok    = copy(mksar[:,((resid< 1)|con1)&(con0)])
         #mkng    = copy(mksar[:,((resid>=1)|con2)&(con0)])
@@ -66,26 +66,29 @@ def plot_vj_MK(prpdata, ax=np.nan):
         #mkng    = copy(mksar[:,((resid>=1)|con2)&(con0)])
         mkok    = copy(mksar[:,contot])
         mkng    = copy(mksar[:,contot_not])
-        ax.errorbar(mkok[0], mkok[1], xerr=mkok[2], yerr=mkok[3], c='orange', fmt='o', capsize=3,\
-             ecolor='gray', markeredgewidth=0.5,markeredgecolor='gray', markersize=ms, elinewidth=0.5)
-        ax.errorbar(mkng[0], mkng[1], xerr=mkng[2], yerr=mkng[3], c='black',  fmt='o', capsize=3,\
-             ecolor='gray', markeredgewidth=0.5,markeredgecolor='gray', markersize=ms, elinewidth=0.5)
+        ax.errorbar(mkok[0], mkok[1], xerr=mkok[2], yerr=mkok[3], c='orange', fmt='o', capsize=0, \
+             ecolor='black', markeredgewidth=0.5,markeredgecolor='black', markersize=ms, elinewidth=0.5)
+        ax.errorbar(mkng[0], mkng[1], xerr=mkng[2], yerr=mkng[3], c='black',  fmt='o', capsize=0,\
+             ecolor='black', markeredgewidth=0.5,markeredgecolor='black', markersize=ms, elinewidth=0.5)
         ax.set_xlabel("$V~-~J$")
         ax.set_xlim((0.2,6.5)); ax.set_ylim((0.1,9.3))
         ax.set_ylabel("M$_K$")
     
+        ax.grid(ls='--', lw=0.5)
     flg     = np.where(((resid >=1)|(con2)|(vj<1.2)|(7<vj)), 1, 0)
     flgsort = flg[np.argsort(mksar[-1])]
     return  np.array(np.array(k2id[(flgsort==1)],dtype='i8'), dtype='unicode')
 
 def plot_teff_mass(ax, tf, ms, tf_er, ms_er):
-    ax.scatter(tf,ms,c="orange",s=10,ec='gray',zorder=3,label="RUWE<1.4", linewidth=0.5)
-    ax.errorbar(tf,ms,xerr=tf_er,yerr=ms_er,fmt='.',c='gray',capsize=3,zorder=1,\
+    ax.scatter(tf,ms,c="orange",ec='black',s=15,zorder=3,label="RUWE<1.4", linewidth=0.5)
+    ax.errorbar(tf,ms,xerr=tf_er,yerr=ms_er,fmt='.',c='black',capsize=0,zorder=1,\
         elinewidth=0.5)#,c=rw,s=30,cmap=plt.cm.jet,ec='gray',vmin=1,vmax=1.5)
     ax.set_xlabel("Effective Temperature [K]")
-    ax.set_ylabel("Stellar Mass [M$_{\odot}$]")
+    #ax.set_ylabel("Stellar Mass [M$_{\odot}$]")
+    #ax.set_ylabel("M$_K$")
+    ax.grid(ls='--', lw=0.5)
     ax.set_xlim((2500,5800))
-    ax.set_ylim((0.1,1.5))
+    ax.set_ylim((0.1,9.3))
 
 def cal_err_wari(a,b,ae,be):
     er  = ((ae/b)**2+(a*be/b**2)**2)**0.5
@@ -101,7 +104,7 @@ if __name__=='__main__':
         prpdata     = np.loadtxt(prpfile, dtype='unicode', comments='#', delimiter=',') 
         #print(prptit)
         #exit()
-        fig     = plt.figure(figsize=(8,3.5))
+        fig     = plt.figure(figsize=(7,3))
 
         #plt.rcParams["font.family"] = "Arial"
 
@@ -119,6 +122,16 @@ if __name__=='__main__':
         print("valid targets", len(prpval))
 
         k2id   = np.array(prpval[:,0], dtype='f8')
+
+        k   = np.array(prpval[:,5], dtype='f8')
+        ker = np.array(prpval[:,6], dtype='f8')
+        plx = np.array(prpval[:,8], dtype='f8')
+        per = np.array(prpval[:,9], dtype='f8')
+        MK  = k + 5 + 5*np.log10(plx*1e-3)
+        MKp = k+ker + 5 + 5*np.log10((plx-per)*1e-3)
+        MKm = k-ker + 5 + 5*np.log10((plx+per)*1e-3)
+        MKe = np.abs((MKp - MKm)/2.)
+
         tf  = np.array(prpval[:,16], dtype='f8')
         ms  = np.array(prpval[:,14], dtype='f8')
         tf_er  = np.array(prpval[:,17], dtype='f8')
@@ -127,8 +140,10 @@ if __name__=='__main__':
         ga  = np.array(prpval[:,12], dtype='f8')
         d   = np.array(prpval[:,13], dtype='f8')
         #ax1.scatter(tf[(rw<1.4)],ms[(rw<1.4)],c="orange",s=30,cmap=plt.cm.jet,lw=1,ec='gray',vmin=1,vmax=1.5,zorder=2)
-        ax2     = fig.add_subplot(1,2,2)
-        plot_teff_mass(ax2, tf, ms, tf_er, ms_er)
+        ax2     = fig.add_subplot(1,2,2, sharey=ax1)
+        #plot_teff_mass(ax2, tf, ms, tf_er, ms_er)
+        plot_teff_mass(ax2, tf, MK, tf_er, MKe)
+        plt.subplots_adjust(hspace=.0)
         plt.tight_layout()
         #plt.show()
         #exit()
