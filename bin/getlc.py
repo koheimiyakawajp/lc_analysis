@@ -113,6 +113,7 @@ def tesslcQLP_byepic(epicid, fpdc=True):
 def tesslc_byepic(epicid, fpdc=True):
     TIC     = EPIC_to_TIC(epicid)
     search_result = lk.search_lightcurve(TIC)
+    search_result = search_result[(search_result.target_name==TIC[4:])]
     if np.all(search_result.author!='SPOC'):
         return [0]
     

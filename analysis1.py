@@ -5,68 +5,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import medfilt
 import sys
 from copy import copy
-
-
-def plot_vj_MK(prpdata, ax=np.nan):
-
-    k2id   = np.array(prpdata[1:,0], dtype='f8')
-    j   = np.array(prpdata[1:,1], dtype='f8')
-    jer = np.array(prpdata[1:,2], dtype='f8')
-    k   = np.array(prpdata[1:,5], dtype='f8')
-    ker = np.array(prpdata[1:,6], dtype='f8')
-    v   = np.array(prpdata[1:,7], dtype='f8')
-    rw  = np.array(prpdata[1:,11], dtype='f8')
-    ga  = np.array(prpdata[1:,12], dtype='f8')
-    d   = np.array(prpdata[1:,13], dtype='f8')
-    plx = prpdata[1:,8]
-    per = prpdata[1:,9]
-    
-    k2id   = k2id[(plx!=('--'))]
-    j   = j[(plx != '--')]
-    jer = jer[(plx != '--')]
-    k   = k[(plx != '--')]
-    ker = ker[(plx != '--')]
-    v   = v[(plx != '--')]
-    rw  = rw[(plx != '--')]
-    ga  = ga[(plx != '--')]
-    d   = d[(plx != '--')]
-    vj  = v-j
-    per = per[(plx!='--')]
-    plx = plx[(plx!='--')]
-    plx = np.array(plx, dtype='f8')
-    per = np.array(per, dtype='f8')
-    MK  = k + 5 + 5*np.log10(plx*1e-3)
-    MKp = k+ker + 5 + 5*np.log10((plx-per)*1e-3)
-    MKm = k-ker + 5 + 5*np.log10((plx+per)*1e-3)
-    MKe = np.abs((MKp - MKm)/2.)
-
-    mksar   = np.array((np.sort(vj), MK[(np.argsort(vj))], jer[(np.argsort(vj))],\
-         MKe[(np.argsort(vj))],np.arange(len(vj))[np.argsort(vj)]))
-    mkmed   = medfilt(mksar[1],kernel_size=11)
-    resid   = mksar[1] - mkmed
-
-    con1    = ((rw< 1.4)&((ga< 20)|(d< 5)))
-    con1    = con1[np.argsort(vj)]
-    con2    = ((rw>=1.4)|((ga>=20)&(d>=5)))
-    con2    = con2[np.argsort(vj)]
-
-    if ax is not np.nan:
-        mkok    = copy(mksar[:,((resid<2)|con1)])
-        mkng    = copy(mksar[:,((resid>=2)|con2)])
-        ax.errorbar(mkok[0], mkok[1], xerr=mkok[2], yerr=mkok[3], c='orange', fmt='o', capsize=3, ecolor='gray', markeredgecolor='gray', markersize=5)
-        ax.errorbar(mkng[0], mkng[1], xerr=mkng[2], yerr=mkng[3], c='black',  fmt='o', capsize=3, ecolor='gray', markeredgecolor='gray', markersize=5)
-        ax.set_xlabel("$V~-~J$")
-        ax.set_ylabel("M$_K$")
-    
-    flg     = np.where((resid >=2)|(con2), 1, 0)
-    flgsort = flg[np.argsort(mksar[-1])]
-    return  np.array(np.array(k2id[(flgsort==1)],dtype='i8'), dtype='unicode')
-
-def plot_teff_mass(ax, tf, ms, tf_er, ms_er):
-    ax.scatter(tf,ms,c="orange",s=30,ec='gray',zorder=3,label="RUWE<1.4")
-    ax.errorbar(tf,ms,xerr=tf_er,yerr=ms_er,fmt='.',c='gray',capsize=3,zorder=1)#,c=rw,s=30,cmap=plt.cm.jet,ec='gray',vmin=1,vmax=1.5)
-    ax.set_xlabel("Effective Temperature [K]")
-    ax.set_ylabel("Stellar Mass [M$_{\odot}$]")
+import matplotlib.colors as colors
 
 def cal_err_wari(a,b,ae,be):
     er  = ((ae/b)**2+(a*be/b**2)**2)**0.5
@@ -80,36 +19,20 @@ if __name__=='__main__':
         ampfile     = sys.argv[1]
         prpfile     = sys.argv[2]
 
-        ampdata     = np.loadtxt(ampfile, dtype='f8', comments='#')
+        ampdata     = np.loadtxt(ampfile, dtype='unicode', comments='#')
+        ampval      = np.array(ampdata[1:], dtype='f8')
+        amptit      = ampdata[0]
         prpdata     = np.loadtxt(prpfile, dtype='unicode', comments='#', delimiter=',') 
+        prpval      = np.array(prpdata[1:], dtype='f8')
         prptit      = prpdata[0]
         #print(prptit)
-        #exit()
-        fig     = plt.figure(figsize=(9,6.5))
-        ax1     = fig.add_subplot(2,2,1)
-        rmids   = plot_vj_MK(prpdata,ax1)
-        for rmid in rmids:
-            prpdata = prpdata[(prpdata[:,0] != rmid)]
-        prpval      = prpdata[1:]
-
-        k2id   = np.array(prpval[:,0], dtype='f8')
-        tf  = np.array(prpval[:,16], dtype='f8')
-        ms  = np.array(prpval[:,14], dtype='f8')
-        tf_er  = np.array(prpval[:,17], dtype='f8')
-        ms_er  = np.array(prpval[:,15], dtype='f8')
-        rw  = np.array(prpval[:,11], dtype='f8')
-        ga  = np.array(prpval[:,12], dtype='f8')
-        d   = np.array(prpval[:,13], dtype='f8')
-        #ax1.scatter(tf[(rw<1.4)],ms[(rw<1.4)],c="orange",s=30,cmap=plt.cm.jet,lw=1,ec='gray',vmin=1,vmax=1.5,zorder=2)
-        ax2     = fig.add_subplot(2,2,2)
-        plot_teff_mass(ax2, tf, ms, tf_er, ms_er)
-        #plt.tight_layout()
-        #plt.show()
         #exit()
 
         #print(ampdata,prpdata)
         res     = []
-        for dline in ampdata:
+        for dline in ampval:
+            print(dline)
+            #exit()
             epic    = dline[0]
             con     = (np.array(prpval[:,0], dtype='f8') == epic)
             if np.any(con) :
@@ -120,58 +43,193 @@ if __name__=='__main__':
                 mass    = float(prop[(prptit=="mass")][0])
                 mass_er = float(prop[(prptit=="mass_er")][0])
                 ruwe    = float(prop[(prptit=="ruwe")][0])
-                res.append(np.hstack((dline, teff, teff_er, mass, mass_er, ruwe)))
+                hmag    = float(prop[(prptit=="hmag")][0])
+
+                # ---------------
+                if dline[(amptit=="wnk2")][0] < dline[(amptit=="wnk2sp")][0]:
+                    ampk2   = dline[(amptit=="ampk2")][0]
+                    erk2    = dline[(amptit=="erk2")][0]
+                    wnk2    = dline[(amptit=="wnk2")][0]
+                else:
+                    ampk2   = dline[(amptit=="ampk2sp")][0]
+                    erk2    = dline[(amptit=="erk2sp")][0]
+                    wnk2    = dline[(amptit=="wnk2sp")][0]
+                
+                amptess     = dline[(amptit=="amptess")][0]
+                ertess      = dline[(amptit=="ertess")][0]
+                wntess      = dline[(amptit=="wntess")][0]
+
+                shotk2      = dline[(amptit=="shotk2")][0]
+                shottess    = dline[(amptit=="shottess")][0]
+
+                p_k2        = dline[(amptit=="pbest")][0]
+                p_tess      = dline[(amptit=="pbest_tqlp")][0]
+
+                array_mrg   = np.array((epic, ampk2, erk2, wnk2, amptess, ertess, wntess,\
+                                            shotk2, shottess, p_k2, p_tess,\
+                                                teff, teff_er, mass, mass_er, ruwe, hmag))
+
+                #res.append(np.hstack((dline, teff, teff_er, mass, mass_er, ruwe, hmag)))
+                res.append(array_mrg)
+
 
         res     = np.array(res,dtype='f8')
-        print(len(res[:,0]))
-        ax3     = fig.add_subplot(2,2,3)
-        ax3.errorbar(res[:,1], res[:,3], xerr=res[:,2], yerr=res[:,4],  zorder=1,\
-            fmt='.', capsize=3, c='lightgray', elinewidth=0.5)
-        ax3.plot(np.linspace(1e-4,1e-1), np.linspace(1e-4,1e-1), c='black', ls=':', lw=1)
-        mp2     = ax3.scatter(res[:,1], res[:,3],  c=res[:,7], s=30, zorder=3, ec='gray',cmap=plt.cm.plasma)
-        ax3.set_xlabel("$h_{Kp}$ : Semi-Amplitude in Kp")
-        ax3.set_ylabel("$h_T$ : Semi-Amplitude in T")
-        ax3.set_xlim((2e-4, 1e-1));ax3.set_ylim((2e-4, 1e-1))
-        ax3.set_xscale("log");ax3.set_yscale("log")
-        cb1 = fig.colorbar(mp2, ax=ax3)
-        cb1.set_label("Effective Temperature [K]")
+        #mscon   = (res[:,4]>res[:,6])
+        #res     = res[mscon]
+        print(res)
+
+        #--------------
+        EPICID  = res[:,0]     
+        AM_K    = res[:,1]
+        AM_K_e  = res[:,2]
+        WN_K    = res[:,3]
+        AM_T    = res[:,4]
+        AM_T_e  = res[:,5]
+        WN_T    = res[:,6]
+        #AM_T    = res[:,7]
+        #AM_T_e  = res[:,8]
+        #WN_T    = res[:,9]
+        SHOT_K  = res[:,7]
+        SHOT_T  = res[:,8]
+        Prot_K  = res[:,9]
+        Prot_T  = res[:,10]
+        print(Prot_K, Prot_T)
+        Prot_VA = np.abs(Prot_K - Prot_T)/Prot_K + 1.
+        print(Prot_VA)
+        Teff    = res[:,11]
+        Teff_e  = res[:,12]
+        HMAG    = res[:,-1]
+        #--------------
+
+        fig     = plt.figure(figsize=(12,6.5))
+        plt.rcParams["font.family"] = "Arial"
+        # plot K2 noise
+        ax1     = fig.add_subplot(2,3,1)
+        #mp1     = ax1.scatter(Teff, NREL_K, s= 16, c=Prot_K, ec='orangered', norm=colors.LogNorm(vmin=0.1,vmax=35))
+        mp1     = ax1.scatter(Teff, WN_K, s= 16, c=Prot_K, ec='orangered', norm=colors.LogNorm(vmin=0.1,vmax=35), label='obs noise')
+        #mp1     = ax1.scatter(HMAG, WN_K, s= 16, c=Prot_K, ec='orangered', norm=colors.LogNorm(vmin=0.1,vmax=35), label='obs noise')
+        ax1.scatter(Teff, SHOT_K, s= 16, c=Prot_K, ec='dimgrey' ,norm=colors.LogNorm(vmin=0.1,vmax=35), label='shot noise')
+        #ax1.scatter(HMAG, SHOT_K, s= 16, c=Prot_K, ec='dimgrey' ,norm=colors.LogNorm(vmin=0.1,vmax=35), label='shot noise')
+        cb1     = fig.colorbar(mp1, ax=ax1)
+        cb1.set_label("Rotation Period [d]")
+        ax1.set_yscale("log")
+        ax1.set_ylabel("SD of noise")
+        ax1.set_xlabel("Effective Temperature [K]")
+        ax1.legend()
+        print("EPICID" ,np.array(EPICID[((4500<Teff)&(5e-4<WN_K)&(Prot_K>2))],dtype='i8'))
+
+        # plot TESS noise
+        ax2     = fig.add_subplot(2,3,2)
+        #mp2     = ax2.scatter(Teff, WN_T, s= 16, c=Prot_K, ec='dimgrey', marker='^', norm=colors.LogNorm(vmin=0.1,vmax=35))
+        #mp2     = ax2.scatter(Teff, NREL_T, s= 16, c=Prot_K, ec='orangered', norm=colors.LogNorm(vmin=0.1,vmax=35))
+        mp2     = ax2.scatter(Teff, WN_T, s= 16, c=Prot_K, ec='orangered', norm=colors.LogNorm(vmin=0.1,vmax=35), label='obs noise')
+        #mp2     = ax2.scatter(HMAG, WN_T, s= 16, c=Prot_K, ec='orangered', norm=colors.LogNorm(vmin=0.1,vmax=35), label='obs noise')
+        ax2.scatter(Teff, SHOT_T, s= 16, c=Prot_K, ec='dimgrey' ,norm=colors.LogNorm(vmin=0.1,vmax=35), label='shot noise')
+        #ax2.scatter(HMAG, SHOT_T, s= 16, c=Prot_K, ec='dimgrey' ,norm=colors.LogNorm(vmin=0.1,vmax=35), label='shot noise')
+        cb2     = fig.colorbar(mp2, ax=ax2)
+        cb2.set_label("Rotation Period [d]")
+        ax2.set_yscale("log")
+        ax2.set_ylabel("SD of noise")
+        ax2.set_xlabel("Effective Temperature [K]")
+        ax2.legend()
 
 
+        c_K     = np.median(WN_K/SHOT_K)
+        c_T     = np.median(WN_T/SHOT_T)
+        print(c_K, c_T)
 
-        ax4     = fig.add_subplot(2,2,4) 
-        yer     = cal_err_wari(res[:,3], res[:,1], res[:,4], res[:,2])
+        SQRED_K = WN_K**2 - SHOT_K**2
+        COM_K   = np.min(SQRED_K)
+        SQRED_T = WN_T**2 - SHOT_T**2
+        COM_T   = np.min(SQRED_T)
+
+        NREL_K  = np.sqrt(WN_K**2-SHOT_K**2)# - COM_K)
+        NREL_T  = np.sqrt(WN_T**2-SHOT_T**2)# - COM_T)
+        #NREL_K  = WN_K**2-c_K*SHOT_K**2# - COM_K)
+        #NREL_T  = WN_T**2-c_T*SHOT_T**2# - COM_T)
+
+        #ax3     = fig.add_subplot(2,3,3)
+        ##mp2     = ax2.scatter(Teff, WN_T, s= 16, c=Prot_K, ec='dimgrey', marker='^', norm=colors.LogNorm(vmin=0.1,vmax=35))
+        #mp3     = ax3.scatter(Teff, NREL_T, s= 16, c=Prot_K, ec='orangered', norm=colors.LogNorm(vmin=0.1,vmax=35))
+        ##mp3     = ax3.scatter(Prot_K, NREL_T, s= 16, c=Teff, ec='orangered', vmin=3000,vmax=5000)
+        ##mp3     = ax3.scatter(HMAG, NREL_T, s= 16, c=Teff, ec='orangered', vmin=3000,vmax=5000)
+        ##mp3     = ax3.scatter(Teff, NREL_T/NREL_K, s= 16, c=Prot_K, ec='orangered', norm=colors.LogNorm(vmin=0.1,vmax=35))
+        #ax3.scatter(Teff, NREL_K, s= 16, c=Prot_K, ec='seagreen', norm=colors.LogNorm(vmin=0.1,vmax=35))
+        ##ax3.scatter(Prot_K, NREL_K, s= 16, c=Teff, ec='seagreen', vmin=3000,vmax=5000)
+        ##ax3.scatter(Teff, SHOT_T, s= 16, c=Prot_K, ec='dimgrey' ,norm=colors.LogNorm(vmin=0.1,vmax=35), label='shot noise')
+        ##ax3.scatter(HMAG, NREL_K, s= 16, c=Prot_K, ec='dimgrey' ,norm=colors.LogNorm(vmin=0.1,vmax=35), label='shot noise')
+        #cb3     = fig.colorbar(mp3, ax=ax3)
+        #cb3.set_label("Rotation Period [d]")
+        #ax3.set_yscale("log")
+        ##ax3.set_xscale("log")
+        #ax3.set_ylabel("additional noise")
+        ##ax3.set_ylim((5e-5,3e-1))
+        #ax3.set_xlabel("Effective Temperature [K]")
+        ##ax3.legend()
+        
+        
+        #ax6     = fig.add_subplot(2,3,6)
+        #ax6.scatter(Teff, HMAG, s= 16, c=Prot_K, ec='seagreen', norm=colors.LogNorm(vmin=0.1,vmax=35))
+
+        print(len(EPICID))
+
+        con1   = ((Teff > 0)&((AM_K > WN_K) &(AM_T > WN_T)))
+        #con1   = (Teff > 0)
+        #con2    = ((AM_K > 0.01)|(AM_T > 0.01))
+        #print(len(EPICID[con1]))
+
+        ax4     = fig.add_subplot(2,3,4)
+        ax4.errorbar(AM_K[con1], AM_T[con1], xerr=AM_K_e[con1], yerr=AM_T_e[con1],\
+            zorder=1, markersize=0.1, fmt='.', capsize=3, c='gray', elinewidth=0.5)
+        ax4.plot(np.linspace(1e-4,1e-1), np.linspace(1e-4,1e-1), c='black', ls=':', lw=1)
+        mp4     = ax4.scatter(AM_K[con1], AM_T[con1],  c=Teff[con1], s=15, zorder=3, linewidth=0.5 ,ec='gray',cmap=plt.cm.plasma)
+        ax4.set_xlabel("$h_{Kp}$ : Semi-Amplitude in K2")
+        ax4.set_ylabel("$h_T$ : Semi-Amplitude in TESS")
+        ax4.set_xlim((2e-4, 1e-1));ax4.set_ylim((2e-4, 1e-1))
+        ax4.set_xscale("log");ax4.set_yscale("log")
+        cb4 = fig.colorbar(mp4, ax=ax4)
+        cb4.set_label("Effective Temperature [K]")
+
+        ax4     = fig.add_subplot(2,3,5) 
+        yer     = cal_err_wari(AM_T, AM_K, AM_T_e, AM_K_e)
         #print(yer)
         #exit()
-        ax4.errorbar(res[:,7], res[:,3]/res[:,1], xerr=res[:,8], yerr=yer,  zorder=1, \
-            fmt='.', capsize=3, c='lightgray', elinewidth=0.5)
-        mp      = ax4.scatter(res[:,7], res[:,3]/res[:,1], c=res[:,-1], s=30, ec='gray' ,zorder=3)
+        AM_REL  = AM_T/AM_K
+        ax4.errorbar(Teff[con1], AM_REL[con1], xerr=Teff_e[con1], yerr=yer[con1],  zorder=1, \
+        #ax4.errorbar(Teff[con1&con2], AM_REL[con1&con2], xerr=Teff_e[con1&con2], yerr=yer[con1&con2],  zorder=1, \
+            fmt='.', markersize=0.5, capsize=3, c='gray', elinewidth=0.5)
+        #mp4     = ax4.scatter(Teff[con1], AM_REL[con1], c=Prot_K[con1], s=15, ec='gray' ,zorder=3,\
+        mp4     = ax4.scatter(Teff[con1], AM_REL[con1], c=Prot_K[con1], s=15, ec='gray' ,zorder=3,\
+        #mp4     = ax4.scatter(Teff[con1&con2], AM_REL[con1&con2], c=AM_T[con1&con2], s=15, ec='gray' ,zorder=3,\
+        #mp4     = ax4.scatter(Teff[con1], AM_REL[con1], c=Prot_VA[con1], s=15, ec='gray' ,zorder=3,\
+                #norm=colors.LogNorm(vmin=0.1,vmax=35), \
+                linewidth=0.5)
+                #linewidth=0.5, vmin=0.5, vmax=1.5)
+        #mp      = ax4.scatter(res[:,7], res[:,5]/res[:,1], c=res[:,-1], s=30, ec='gray' ,zorder=3)
         ax4.set_yscale("log")
         ax4.set_ylabel("$h_{T}/h_{Kp}$")
         ax4.set_xlabel("Effective Temperature [K]")
-        cb2     = fig.colorbar(mp, ax=ax4)
-        cb2.set_label("RUWE")
+        ax4.axhline(1,lw=1,ls=':',c='red')
+        cb4     = fig.colorbar(mp4, ax=ax4)
+        cb4.set_label("Rotation Period [d]")
+        print(np.array(EPICID[con1&(AM_REL > 2)], dtype='i8'))
 
-        #ax4     = fig.add_subplot(2,2,4) 
-        #ax4.scatter(res[:,9], res[:,3]/res[:,1], s=15)
-        #ax4.set_yscale("log")
-        #ax4.set_ylabel("$h_{T}/h_{Kp}$")
-        #ax4.set_xlabel("Stellar Mass [M$_\odot$]")
+        ax6     = fig.add_subplot(2,3,6)
+        ax6.scatter(HMAG[con1], AM_REL[con1], s= 16, c=Prot_K[con1], ec='seagreen', norm=colors.LogNorm(vmin=0.1,vmax=35))
+        ax6.set_yscale("log")
+        ax6.set_ylabel("$h_{T}/h_{Kp}$")
+        ax6.set_xlabel("H band magnitudes")
+
+        #ax6     = fig.add_subplot(2,3,6) 
+        #ax6.scatter(WN_K[con1], AM_K[con1], c="dimgrey", s=15, ec='gray' ,zorder=3)
+        #ax6.scatter(WN_T[con1], AM_T[con1], c="orangered", s=15, ec='orangered' ,zorder=3)
+        #ax6.set_yscale("log")
+        #ax6.set_xscale("log")
+        #ax6.set_ylim((3e-5,1e-1))
+        #ax6.set_xlim((3e-5,1e-1))
+
         plt.tight_layout()
-        plt.show()
-        exit()
-        #plt.scatter(res[:,17],res[:,-1], s=15)
-        #plt.scatter(res[:,17], res[:,3]/res[:,1], s=15)
-        #plt.scatter(res[:,17], res[:,5]/res[:,1], s=15)
-        #plt.scatter(res[:,23], res[:,5]/res[:,1], s=15)
-        #plt.scatter(res[:,21], res[:,3]/res[:,1], s=10)
-        #plt.scatter(res[:,21], res[:,5]/res[:,1], s=10)
-        #plt.scatter(res[:,1], res[:,3],s=10)
-        #plt.scatter(res[:,1], res[:,5],s=10)
-        #plt.plot(np.linspace(2e-4,2e-1,100),np.linspace(2e-4,2e-1,100),lw=1,ls='--',c='black')
-        #plt.xlim((2e-4,2e-1));plt.ylim((2e-4,2e-1))
-        #plt.xlim((2e-4,2e-1));plt.ylim((2e-4,2e-1))
-        plt.yscale("log");plt.xscale("log")
-        plt.show()
-        #exit()
-        
-
+        plt.show();exit()
+        outname     = ampfile.split(".")[0] + "_plot.png"
+        plt.savefig(outname, dpi=300)
+        #plt.show()

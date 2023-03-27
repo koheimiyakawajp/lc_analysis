@@ -126,8 +126,37 @@ def roop_mes(data_nn, pbest):
     else:
         return np.mean(amp_ar), np.std(amp_ar)
 
-def mes_wrap(data, pbest, wsigma=3):
+def mes_wrap(data, pres, wsigma=3):
+    if pres.ndim == 2:
+        pbest   = pres_k2[0,0]
+        prange  = pres[:,-2:]
+    elif pres.ndim == 1:
+        pbest   = pres_k2[0]
+        prange  = pres[-2:]
     data_nn,wn  = ft.rm_whitenoise(data,wsigma)
+    #data_rednoise   = ft.peakrange_filter(data_nn, prange)
+    print("p_min", np.min(prange))
+    data_rednoise   = ft.highpass_filter(data_nn, 0.1)
+
+    data_rotation   = np.array((data_rednoise[0], data_nn[1] - data_rednoise[1]))
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(2,1,1)
+    ft.plot_freq(data_rednoise, ax1, color="red")
+    data_wn  = np.array((data[0], data[1] - data_nn[1]))
+    ft.plot_freq(data_wn, ax1, color="gray")
+    ft.plot_freq(data_rotation, ax1, color="blue")
+    ax2 = fig.add_subplot(2,1,2)
+    ax2.scatter(data_wn[0], data_wn[1], c="gray", s=1)
+    ax2.scatter(data_rednoise[0], data_rednoise[1], c="red", s=1)
+    ax2.scatter(data_rotation[0], data_rotation[1], c="blue", s=1)
+    plt.show()
+
+
+    #plt.scatter(data_rotation[0], data_rotation[1], s=1, c='orange')
+    #plt.scatter(data_rednoise[0], data_rednoise[1], s=1, c='black')
+    #plt.scatter(data_nn[0], data[1] - data_nn[1], s=1, c='gray')
+    #plt.show()
 
     #plt.scatter(data[0], data[1], s=1)
     #print(roop_mes(data_nn, pbest))
@@ -342,7 +371,7 @@ if __name__=='__main__':
                     elif pres_k2.ndim == 1:
                         pbest   = pres_k2[0]
                     print("measuring amplitude for K2 data.")
-                    lck2_nn,ampk2,erk2,wnk2 = mes_wrap(lck2_1, pbest, wsigma=3)
+                    lck2_nn,ampk2,erk2,wnk2 = mes_wrap(lck2_1, pres_k2, wsigma=3)
                     print(ampk2, erk2)
 
                     flg += 1
@@ -361,7 +390,7 @@ if __name__=='__main__':
                     #print("running period analysis for TESS data.")
                     #pres_tess   = period_analysis(lctess_1,k2id + " TESS")
                     print("measuring amplitude for K2SAP data.")
-                    lck2sp_nn,ampk2sp,erk2sp,wnk2sp = mes_wrap(lck2sp_1, pbest, wsigma=3)
+                    lck2sp_nn,ampk2sp,erk2sp,wnk2sp = mes_wrap(lck2sp_1, pres_k2, wsigma=3)
                     print(ampk2sp, erk2sp)
                     
                     flg += 1
@@ -392,7 +421,7 @@ if __name__=='__main__':
                         pbest_tqlp  = pres_tqlp[0]
 
                     print("measuring amplitude for TESS QLP data.")
-                    lctqlp_nn,amptqlp,ertqlp,wntqlp = mes_wrap(lctqlp_1, pbest_tqlp, wsigma=3)
+                    lctqlp_nn,amptqlp,ertqlp,wntqlp = mes_wrap(lctqlp_1, pres_tqlp, wsigma=3)
 
             else:
                 lctqlp,lctqlp_1,lctqlp_nn,amptqlp,ertqlp,wntqlp= np.nan,np.nan, np.nan,np.nan,np.nan,np.nan
@@ -427,7 +456,7 @@ if __name__=='__main__':
                         elif pres_tqlp.ndim == 1:
                             pbest_tqlp  = pres_tqlp[0]
                     print("measuring amplitude for TESS data.")
-                    lctess_nn,amptess,ertess,wntess = mes_wrap(lctess_1, pbest_tqlp, wsigma=3)
+                    lctess_nn,amptess,ertess,wntess = mes_wrap(lctess_1, pres_tqlp, wsigma=3)
                     print(amptess, ertess)
                     flg  += 1
 

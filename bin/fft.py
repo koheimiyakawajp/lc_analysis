@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from copy import copy
 
 def fft(data):
     time    = data[0]
@@ -25,25 +26,31 @@ def ifft(fft_time, fft_flux):
     return np.array((time, flux), dtype='f8')
 
 
-def lowpass_filter(data, cutoff):
-    fft_data    = fft(data)
+def lowpass_filter(data, p_cutoff):
+    lc_data     = copy(data)
+    fft_data    = fft(lc_data)
     fft_time    = fft_data[0]
     fft_flux    = fft_data[1]
+    cutoff      = 1./p_cutoff
     fft_flux[(cutoff < fft_time)] = 0
+    fft_flux[((fft_time < fft_time[-1] - cutoff))] = 0
     new_data    = ifft(fft_time, fft_flux)
-    new_data[0] = new_data[0] + data[0,0]
 
-    return new_data
+    return np.array((lc_data[0],new_data[1]))
 
-def highpass_filter(data, cutoff):
-    fft_data    = fft(data)
+def highpass_filter(data, p_cutoff):
+    lc_data     = copy(data)
+
+    lc_data[0]  = lc_data[0] - lc_data[0,0]
+    fft_data    = fft(lc_data)
     fft_time    = fft_data[0]
     fft_flux    = fft_data[1]
+    cutoff      = 1./p_cutoff
     fft_flux[(cutoff > fft_time)] = 0
+    fft_flux[((fft_time > fft_time[-1] - cutoff))] = 0
     new_data    = ifft(fft_time, fft_flux)
-    new_data[0] = new_data[0] + data[0,0]
 
-    return new_data
+    return np.array((copy(data[0]),new_data[1]))
 
 def det_maxpeak(p,pow):
     p_best  = p[(pow==max(pow))]
@@ -87,6 +94,28 @@ def fftmaxpeak_filter(data):
     return new_data, fbest, fmax, fmin
     
 
+def filtering(fft_time, fft_flux, f1, f2):
+    fft_flux[((f1 < fft_time)&\
+                (fft_time < f2))] = 0
+    fft_flux[((fft_time[-1] - f2 < fft_time)&\
+                (fft_time < fft_time[-1] - f1))] = 0
+    return fft_flux
+
+
+def peakrange_filter(data, period_array):
+    lcdata      = copy(data)
+    fft_data    = fft(lcdata)
+    fft_time    = fft_data[0]
+    fft_flux    = fft_data[1]
+    print(period_array)
+    for pr in period_array:
+        for sc in [1./4., 1./3., 1./2., 1.0, 2.0, 3.0, 4.0]:
+            fu  = sc/pr[0]
+            fl  = sc/pr[1]
+            fft_flux    = filtering(fft_time, fft_flux, fl, fu)
+    new_data    = ifft(fft_time, fft_flux)
+
+    return np.array((lcdata[0], new_data[1]))
 
 def peak_filter(data, freq_array):
     fft_data    = fft(data)
@@ -146,13 +175,13 @@ def whitenoise_sigma(data, nsigma):
 
     return new_data
 
-def plot_freq(data):
+def plot_freq(data, ax, color='gray', lw=1):
     N           = len(data[0])
     fft_data    = fft(data)
     abs_f       = np.abs(fft_data[1])
     abs_f       = abs_f/N*2
     abs_f[0]    = abs_f[0]/2
+    ax.set_xscale("log")
 
-    plt.plot(fft_data[0, :int(N/2)-1], abs_f[:int(N/2)-1])
-    plt.show()
+    ax.plot(fft_data[0, :int(N/2)-1], abs_f[:int(N/2)-1], c=color, lw=lw)
 
