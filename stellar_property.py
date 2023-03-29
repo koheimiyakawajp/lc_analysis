@@ -193,6 +193,7 @@ if __name__=='__main__':
                     writer = csv.DictWriter(csvfile, fieldnames = fieldname)
                     if flg == 1:
                         writer.writeheader()
+                        flg = 0
                     writer.writerow(dline) 
 
         #with open(csvname, 'w', encoding='utf-8',newline='')as csvfile:

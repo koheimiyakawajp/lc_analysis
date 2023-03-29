@@ -1,17 +1,17 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy import interpolate
+from scipy import optimize 
 import copy
 
 
-def split_discon(data, scale=10):
+def split_discon(data, timesep=1):
     data    = data[:,np.argsort(data[0])]
     time    = data[0]
 
     dif_t   = time[1:] - time[:-1]
-    sep     = np.median(dif_t)
 
-    ids     = np.where(dif_t > sep*scale)[0]
+    ids     = np.where(dif_t > timesep)[0]
     ids     += 1
 
     i0      = 0
@@ -81,17 +81,58 @@ def detrend_lc(data, npoint=10):
     data[1] = data[1] - np.median(data[1])
     d_tr    = exten3_lc(data)
     medd    = med_bin(d_tr, npoint)
-    #plt.scatter(data[0], data[1], s=1)
-    #plt.show()
 
-    fn      = interpolate.interp1d(medd[0], medd[1], kind='cubic')
-    trend   = fn(data[0])
-    trend   = trend - np.median(trend)
+    if len(medd[0]) >= npoint/2:
+        fn      = interpolate.interp1d(medd[0], medd[1], kind='cubic')
+        trend   = fn(data[0])
+        trend   = trend - np.median(trend)
 
-    datad   = np.copy(data)
-    datad[1]= data[1] - trend
+        datad   = np.copy(data)
+        datad[1]= data[1] - trend
+        
+    else:
+        datad   = np.copy(data)
     
     return datad
+
+def lin_func(x,a,b):
+    y = a*x + b
+    return y
+
+def detrend_lc_linear(data):
+    datad       = copy.copy(data)
+    datad[1]    = datad[1] - np.median(data[1])
+    datad[0]    = datad[0] - np.median(data[0])
+    para = [1.0,0.0]
+    try:
+        cf  = optimize.curve_fit(f=lin_func, xdata=datad[0], ydata=datad[1], p0=para)
+        a,b = cf[0]
+        datad[1]    = datad[1] - lin_func(datad[0], a,b)
+        datad[0]    = datad[0] + np.median(data[0])
+    except:
+        datad[0]    = datad[0] + np.median(data[0])
+
+    return datad
+
+def base_func(x,a,b,c):
+    y = a*x**2 + b*x + c
+    return y
+
+def detrend_lc_quad(data):
+    datad       = copy.copy(data)
+    datad[1]    = datad[1] - np.median(data[1])
+    datad[0]    = datad[0] - np.median(data[0])
+    para = [1.0,1.0,0.0]
+    try:
+        cf  = optimize.curve_fit(f=base_func, xdata=datad[0], ydata=datad[1], p0=para)
+        a,b,c   = cf[0]
+        datad[1]    = datad[1] - base_func(datad[0], a,b,c)
+        datad[0]    = datad[0] + np.median(data[0])
+    except:
+        datad[0]    = datad[0] + np.median(data[0])
+
+    return datad
+
 
 def median1d(arr, k):
     w = len(arr)
