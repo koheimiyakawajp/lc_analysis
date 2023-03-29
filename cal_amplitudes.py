@@ -127,10 +127,10 @@ def roop_mes(data_nn, pbest):
 
 def mes_wrap(data, pres, wsigma=3):
     if pres.ndim == 2:
-        pbest   = pres_k2[0,0]
+        pbest   = pres[0,0]
         prange  = pres[:,-2:]
     elif pres.ndim == 1:
-        pbest   = pres_k2[0]
+        pbest   = pres[0]
         prange  = pres[-2:]
     data_nn,_   = ft.rm_whitenoise(data,wsigma)
     #data_rednoise   = ft.peakrange_filter(data_nn, prange)
